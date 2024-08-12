@@ -11,9 +11,19 @@
     <title>Login</title>
 </head>
 <body>
- 
-        
-    <a href="{{ url_for('signin') }}">Sign In</a>
+    <div>
+        <form class="form-log-in" action="/login" method="POST">
+            <div class="input-layout">
+                <input type="text" id="username" name="username" placeholder="username" autocomplete="username"><br>
+                <div class="password-btn">
+                    <input type="password" id="password" name="password" placeholder="password" required class="password" autocomplete="new-password">
+                    <img src="../static/images/eye.png" alt="eye-icon" id="show-password">
+                </div>
+            <button action="submit" value="submit" id="login-submit">Log In</button>
+        </form> <br>
+        <a href="{{ url_for('signin') }}">Sign In</a>
+    </div>
+    
 
     
 </body>
