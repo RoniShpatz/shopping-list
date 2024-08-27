@@ -155,7 +155,7 @@ def home():
                 # orginaize the output to get the full info of the user
                 shopping_list = orginize_data_shopping_ilsts(shopping_lists_info)
                 # print(shopping_list)
-                cur.execute('SELECT id, name FROM products ORDER BY name ASC')
+                cur.execute('SELECT id, name, category FROM products ORDER BY name ASC')
                 connection.commit()
                 products_list = cur.fetchall()
                 # print(products_list)
@@ -198,9 +198,10 @@ def home_edit():
                             print(f"Error inserting user: {e}")
                             flash("An error occurred while saving the user.")
                             cur.close()
-                    connection.close()          
-            return redirect('home')
+                    connection.close()
+                else: print('no product_id')
 
+            return redirect('home')
     else:
         redirect(url_for('login'))
 

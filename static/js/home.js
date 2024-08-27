@@ -13,3 +13,6 @@ shoppingListName.forEach(input => {
 input.style.display = 'none'
 })
 
+
+
+

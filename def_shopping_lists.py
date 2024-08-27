@@ -37,3 +37,5 @@ def orginize_data_shopping_ilsts(tauple):
 
     return shopping_list_fix
 
+def add_new_product_to_product_list(product):
+    
