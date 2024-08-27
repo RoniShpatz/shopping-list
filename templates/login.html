@@ -21,6 +21,12 @@
                 </div>
             <button action="submit" value="submit" id="login-submit">Log In</button>
         </form> <br>
+        {% if NoAuthorize %}
+        <p>Password wrong!</p>
+        {% endif %}
+        {% if NoUsername%}
+        <p>Username not found</p>
+        {% endif %}
         <a href="{{ url_for('signin') }}">Sign In</a>
     </div>
     

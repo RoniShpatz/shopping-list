@@ -1,11 +1,11 @@
-from flask import Flask, render_template, request, redirect, url_for, session, flash
+from flask import Flask, render_template, request, redirect, url_for, session, flash, jsonify
 import os
 import psycopg2
 from psycopg2 import sql
 from flask_bcrypt import Bcrypt 
 # making an env var 
 from dotenv import load_dotenv  # take environment variables from .env.
-
+from def_shopping_lists import get_product_id, orginize_data_shopping_ilsts
 app = Flask(__name__) 
 
 bcrypt = Bcrypt(app)
@@ -38,6 +38,8 @@ def get_db_connection():
 def  verify_password(hashed_password, user_password):
     return bcrypt.check_password_hash(hashed_password, user_password)
 
+
+
 @app.route("/", methods=["GET", "POST"])
 def index():
         return redirect(url_for('login'))
@@ -56,8 +58,8 @@ def login():
             try:
                 cur.execute('SELECT password FROM users WHERE username = %s', (username,))
                 result = cur.fetchone()
-                print(result)
-                if result:
+                # print(result)
+                if result: 
                     stored_hash = result[0]
                     if verify_password(stored_hash, password):
                         session['username'] = username
@@ -136,9 +138,71 @@ def signin():
 @app.route("/home", methods=["GET", "POST"])
 def home():
     if "username" in session:
-        return render_template('home.html')
+        name = session['username']
+        connection = get_db_connection()
+        if connection:
+            cur = connection.cursor()
+            try:
+                cur.execute('SELECT * FROM users WHERE username = %s', (name,))
+                connection.commit()
+                user_id = cur.fetchone()[0]
+                if user_id:
+                    session['user_id'] = user_id
+                # getting the user shopping lists data
+                cur.execute('SELECT  sl.quantity, sl.shopping_list_name, sl.notes, p.name, p.category FROM shopping_lists sl INNER JOIN products p ON sl.product_id = p.id WHERE sl.user_id = %s', (user_id, ))
+                connection.commit()
+                shopping_lists_info = cur.fetchall()
+                # orginaize the output to get the full info of the user
+                shopping_list = orginize_data_shopping_ilsts(shopping_lists_info)
+                # print(shopping_list)
+                cur.execute('SELECT id, name FROM products ORDER BY name ASC')
+                connection.commit()
+                products_list = cur.fetchall()
+                # print(products_list)
+                cur.close()
+                connection.close()
+            except psycopg2.IntegrityError as e:
+                    print(f"Error inserting user: {e}")
+                    flash("An error occurred while saving the user.")
+                    cur.close()
+                    connection.close()
+
+            
+        return render_template('home.html', name=name, shopping_list=shopping_list, products_list = products_list)
     else:
         return redirect(url_for('login'))
+
+@app.route("/home_edit", methods = ['POST','GET'])
+def home_edit():
+    if 'username' in session:
+        name = session['username']
+        user_id = session['user_id']
+        if request.method == 'POST':
+        #    get all the info to send to database
+            quantity = request.form.get('quantity') 
+            product = request.form.get('product')
+            notes = request.form.get('notes')
+            shopping_list_name = request.form.get('shopping_list_name')
+            connection = get_db_connection()
+            if connection:
+                product_id = get_product_id(product, connection)
+                if product_id:
+                    try:
+                        cur = connection.cursor()
+                        cur.execute('INSERT INTO shopping_lists (quantity, product_id, shopping_list_name, user_id ,notes) VALUES  (%s, %s, %s, %s, %s)', 
+                                                (quantity, product_id, shopping_list_name, user_id, notes))
+                        connection.commit()
+                        cur.close()
+                        connection.close()    
+                    except  psycopg2.IntegrityError as e:
+                            print(f"Error inserting user: {e}")
+                            flash("An error occurred while saving the user.")
+                            cur.close()
+                    connection.close()          
+            return redirect('home')
+
+    else:
+        redirect(url_for('login'))
 
 
 if __name__ == "__main__":
