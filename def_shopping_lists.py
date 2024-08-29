@@ -2,24 +2,8 @@ from flask import Flask, render_template, request, redirect, url_for, session, f
 import os
 import psycopg2
 from psycopg2 import sql
+from collections import namedtuple
 
-
-
-# def login_db(username, password):
-def get_product_id(product_name, db):
-    new_name = product_name
-    try:
-        cur = db.cursor()
-        cur.execute('SELECT id FROM products WHERE name ILIKE %s', (new_name, ))
-        db.commit()
-        result = cur.fetchone()
-        if result is not None:
-            product_id =result[0]
-        else: product_id = None
-    except  psycopg2.IntegrityError as e:
-        print(f"Error inserting user: {e}")
-        flash("An error occurred while saving the user.")       
-    return product_id   
 
 #sort the user's shoppings lists
 def orginize_data_shopping_ilsts(tauple):
@@ -37,5 +21,9 @@ def orginize_data_shopping_ilsts(tauple):
 
     return shopping_list_fix
 
-def add_new_product_to_product_list(product):
-    
+# convert list from the sqlalchemy to dict to use with jinja2
+
+def convert_products_list_to_tauple(product_list):
+    Product = namedtuple('Product', ['id', 'name', 'category'])
+    product_list_of_namedtuples = [Product(*product) for product in product_list]
+    return product_list_of_namedtuples
