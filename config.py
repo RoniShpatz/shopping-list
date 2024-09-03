@@ -14,19 +14,6 @@ connection_string = f'postgresql://{username}:{db_password}@localhost:5433/shopp
 
 SQLALCHEMY_DATABASE_URI = os.getenv('DATABASE_URL', connection_string)
 
-# def get_db_connection():
-#     try:
-#         connection = psycopg2.connect(
-#             host="localhost",
-#             port=5433,
-#             database="shoppingList",
-#             user=username,
-#             password=db_password
-#         )
-#         return connection
-#     except psycopg2.OperationalError as e:
-#         print(f"Error: {e}")
-#         return None
-    
+
 
 

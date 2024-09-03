@@ -5,9 +5,9 @@ from psycopg2 import sql
 from flask_bcrypt import Bcrypt 
 # making an env var 
 from dotenv import load_dotenv  # take environment variables from .env.
-from def_shopping_lists import orginize_data_shopping_ilsts, convert_products_list_to_tauple, convert_products_list_to_edit,get_product_id_by_user_id
+from def_shopping_lists import orginize_data_shopping_ilsts, convert_products_list_to_tauple, convert_products_list_to_edit,get_product_id_by_user_id, connection_user_list, get_usernames_connected
 from flask_sqlalchemy import SQLAlchemy
-from models import User, db, ActiveShopping, Product, ShoppingList
+from models import User, db, ActiveShopping, Product, ShoppingList, Connections
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy import select, asc
 
@@ -273,7 +273,8 @@ def edit_product_list_edit():
             product_name = request.form.get("product_name")
             product_category = request.form.get("product_category")
             product_action = request.form.get("action")          
-            item = db.session.query(Product).filter(Product.id == product_id).first()
+            item = db.session.query(Product).filter(Product.id == product_id, Product.category == product_category).first()
+            print(item)
             if product_action == 'delete':
                 db.session.delete(item)
             elif product_action == 'update':
@@ -320,6 +321,21 @@ def edit_product_list_add():
         return redirect(url_for('edit_product_list'))
     else:
         redirect(url_for('login'))   
+
+
+@app.route("/profile", methods = ['POST','GET'])
+def profile():
+    if 'username' in session:
+        name = session['username']
+        user_id = session['user_id']
+        current_username = db.session.query(Connections)
+
+
+        return render_template("profile.html", name=name)
+    else:
+        redirect(url_for('login'))    
+
+
 
 @app.route("/loguot", methods = ['POST','GET'])
 def logout():

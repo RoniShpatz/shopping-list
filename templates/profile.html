@@ -1,7 +1,24 @@
 {% extends "base.html" %}
 {% block title %}Home{% endblock %}
 {% block main %}
-<p>profile</p>
+
+<h2>{{name | capitalize}} Profile:</h2>
+<form>
+<!-- change username -->
+</form>
+
+<h4>Connections</h4>
+<p>You are conncted to Users</p>
+<ul>
+    {% for name in connections %}
+<li>{{name}}</li>
+    {% endfor%}  
+</ul>
+
+
+
+
+
 
 
 
