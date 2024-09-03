@@ -5,7 +5,7 @@ from psycopg2 import sql
 from flask_bcrypt import Bcrypt 
 # making an env var 
 from dotenv import load_dotenv  # take environment variables from .env.
-from def_shopping_lists import orginize_data_shopping_ilsts, convert_products_list_to_tauple, convert_products_list_to_edit
+from def_shopping_lists import orginize_data_shopping_ilsts, convert_products_list_to_tauple, convert_products_list_to_edit,get_product_id_by_user_id
 from flask_sqlalchemy import SQLAlchemy
 from models import User, db, ActiveShopping, Product, ShoppingList
 from sqlalchemy.exc import SQLAlchemyError
@@ -105,13 +105,15 @@ def home():
             shopping_list = orginize_data_shopping_ilsts(shopping_lists_data)
             products_list = db.session.query(Product.id, Product.name, Product.category).order_by(asc(Product.name)).all() 
             products_list_tupels = convert_products_list_to_tauple(products_list)
-            # print(shopping_list)
+            product_list_to_data_list = db.session.query(Product.id, Product.name, Product.category, Product.user_id).order_by(asc(Product.name)).all() 
+            products_list_user, products_list_all = convert_products_list_to_edit(product_list = product_list_to_data_list, user_id=user_id)
+            print(products_list_user, products_list_all)
         except SQLAlchemyError as e:
             print(f"Error: {e}")
         if 'shopping_list_name' in session:
             shopping_list_name = session['shopping_list_name']
         else: shopping_list_name  = None
-        return render_template('home.html', name=name, shopping_list=shopping_list, products_list = products_list_tupels, shopping_list_name = shopping_list_name)
+        return render_template('home.html', name=name, shopping_list=shopping_list, products_list = products_list_tupels, products_list_all = products_list_all, products_list_user = products_list_user, shopping_list_name = shopping_list_name)
     else:
         return redirect(url_for('login'))
 
@@ -129,7 +131,8 @@ def home_add():
             shopping_list_name = request.form.get('shopping_list_name')
             if shopping_list_name:
                 session['shopping_list_name'] = shopping_list_name
-            product_id = db.session.query(Product.id).filter_by(name=product).scalar()
+            products_id = db.session.query(Product.id, Product.user_id).filter_by(name=product).all()
+            product_id =   get_product_id_by_user_id(products=products_id, user_id=user_id) 
             if product_id and quantity and int(quantity) >= 1:
                 shopping_list_item = db.session.query(ShoppingList).filter_by(product_id=product_id,shopping_list_name=shopping_list_name).scalar()
                 if shopping_list_item:
@@ -269,11 +272,15 @@ def edit_product_list_edit():
             product_id = request.form.get("product_id")
             product_name = request.form.get("product_name")
             product_category = request.form.get("product_category")
-        item = db.session.query(Product).filter(Product.id == product_id).first()
-        if product_name and product_category:
-            item.category = product_category
-            item.name = product_name
-            item.user_id = user_id
+            product_action = request.form.get("action")          
+            item = db.session.query(Product).filter(Product.id == product_id).first()
+            if product_action == 'delete':
+                db.session.delete(item)
+            elif product_action == 'update':
+                if product_name and product_category:
+                    item.category = product_category
+                    item.name = product_name
+                    item.user_id = user_id
             try:
                 db.session.commit()
                 flash("Product updated successfully!", "success")
@@ -295,7 +302,8 @@ def edit_product_list_add():
             product_name = request.form.get("product_name")
             product_category = request.form.get("category")
             if product_name and product_category:
-                isUniqe = db.session.query(Product).filter(Product.name == product_name).first()
+                isUniqe = db.session.query(Product).filter(Product.name == product_name, Product.user_id == user_id).first()
+                print(isUniqe)
                 if isUniqe:
                      flash("Product name already exists", "error")
                      return redirect(url_for('edit_product_list'))

@@ -36,4 +36,10 @@ def convert_products_list_to_edit(product_list, user_id):
     product_with_user_id = [product for product in product_list_of_namedtuples_filterd if product.user_id == user_id]
     products_without_user_id = [product for product in product_list_of_namedtuples_filterd if not product.user_id]
     return product_with_user_id, products_without_user_id
-    
+
+def get_product_id_by_user_id(products, user_id):
+    for product_id, user in products:
+        if user == user_id:
+            return product_id
+        elif user == None:
+            return product_id

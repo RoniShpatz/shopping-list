@@ -20,11 +20,11 @@
     <ul>
         {% for product in product_list_user %}
             {% if product.category == category %}
-                <li>{{ product.name }}</li>
-                <form action="/edit_product_list_edit" method="POST" class="edit_list_form">
+                <li class="edit_product_item">{{ product.name }}</li>
+                <form action="/edit_product_list_edit" method="POST" class="edit_list_form_onclick">
                     <input name="product_name" value="{{product.name}}">
                     <input name="product_category" value="{{product.category}}">
-                    <input name="product_id" value="{{product.id}}">
+                    <input name="product_id" value="{{product.id}}" class="product_id_hidden">
                     <button type="submit" name="action" value="update">✔</button>
                     <button type="submit" name="action" value="delete">✖</button>  
                 </form>

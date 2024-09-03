@@ -2,12 +2,12 @@
 {% block title %}Home{% endblock %}
 {% block main %}
 {% with messages = get_flashed_messages(with_categories=True) %}
+
 {% if messages %}
 
 {% if shopping_list_name %}
 <p id="hidden_shopping_list_name">{{shopping_list_name}}</p>
 {% endif %}
-
     <ul class="flash-messages">
         {% for category, message in messages %}
             <p class="{{ category }}">{{ message }}</p>
@@ -59,9 +59,12 @@
                                         <label for="products"></label>
                                         <input name="product" placeholder="Add product" list="products" class="product-input" value="{{item.name}}">
                                         <datalist id="products">
-                                            {% for id, product, category in products_list %}
-                                                <option value="{{ product }}">{{ product }}</option>
-                                            {% endfor %}
+                                            {% for product in products_list_all %}
+                                            <option value="{{ product.name }}">{{ product.name }}</option>
+                                        {% endfor %}
+                                        {% for product in products_list_user%}
+                                                <option value="{{ product.name }}">{{ product.name }}</option>
+                                        {% endfor %}
                                         </datalist>
                                         <label for="categories"></label>
                                         <input name="category" placeholder="Add category" list="categories" class="category_input" value="{{item.category}}">
@@ -95,8 +98,11 @@
                     <label for="products"></label>
                     <input name="product" placeholder="Add product" list="products" class="product-input">
                     <datalist id="products">
-                        {% for id, product, category in products_list %}
-                            <option value="{{ product }}">{{ product }}</option>
+                        {% for product in products_list_all %}
+                            <option value="{{ product.name }}">{{ product.name }}</option>
+                        {% endfor %}
+                        {% for product in products_list_user%}
+                                <option value="{{ product.name }}">{{ product.name }}</option>
                         {% endfor %}
                     </datalist>
                     <label for="categories"></label>
@@ -141,14 +147,16 @@
 
     var productInput = document.querySelectorAll(".product-input");
     var categoryInput = document.querySelectorAll(".category_input");
-
-    productInput.forEach((input, index) => {
+    if (productInput) {
+        productInput.forEach((input, index) => {
         input.addEventListener("change", () => {
             var newValue = input.value;
             var product = products_list_obj.find(p => p.name === newValue);
             categoryInput[index].value = product.category;
         });
     });
+    }
+
 
 
 </script>

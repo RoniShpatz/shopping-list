@@ -32,7 +32,7 @@ class ActiveShopping(db.Model):
 class Product(db.Model):
     __tablename__ = 'products'
     id = db.mapped_column(db.Integer, primary_key=True)
-    name = db.mapped_column(db.String(100), unique=True, nullable=False)
+    name = db.mapped_column(db.String(100), nullable=False)
     category = db.mapped_column(db.String, nullable=True)
     user_id = db.mapped_column(db.Integer, db.ForeignKey('users.id'), nullable=True)
     def __str__(self):
@@ -40,7 +40,7 @@ class Product(db.Model):
     active_shoppings = db.relationship('ActiveShopping', backref='product', lazy=True)
     shopping_lists = db.relationship('ShoppingList', backref='product', lazy=True)    
 
-    
+
 class ShoppingList(db.Model):
     __tablename__ = 'shopping_lists'
     id = db.mapped_column(db.Integer, primary_key=True)
