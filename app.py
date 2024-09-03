@@ -5,7 +5,7 @@ from psycopg2 import sql
 from flask_bcrypt import Bcrypt 
 # making an env var 
 from dotenv import load_dotenv  # take environment variables from .env.
-from def_shopping_lists import orginize_data_shopping_ilsts, convert_products_list_to_tauple
+from def_shopping_lists import orginize_data_shopping_ilsts, convert_products_list_to_tauple, convert_products_list_to_edit
 from flask_sqlalchemy import SQLAlchemy
 from models import User, db, ActiveShopping, Product, ShoppingList
 from sqlalchemy.exc import SQLAlchemyError
@@ -54,10 +54,8 @@ def login():
                     flash('Login successful')
                     return redirect(url_for('home'))
                 else:
-                    flash('Invalid password')
                     return render_template("login.html", NoAuthorize=True)
             else:
-                flash('Username not found')
                 return render_template("login.html", NoUsername=True)
         except SQLAlchemyError as e:
             print(f"Error: {e}")
@@ -100,45 +98,231 @@ def home():
     if "username" in session:
         name = session['username']
         user_id = db.session.query(User.id).filter_by(username=name).scalar()
+        session['user_id'] = user_id
         # print(user_id)
         try:
-            shopping_lists_data = db.session.query( ShoppingList.quantity, ShoppingList.shopping_list_name, ShoppingList.notes, Product.name, Product.category).join(Product, ShoppingList.product_id == Product.id).filter(ShoppingList.user_id == user_id).all()
+            shopping_lists_data = db.session.query(ShoppingList.id, ShoppingList.quantity, ShoppingList.shopping_list_name, ShoppingList.notes, Product.name, Product.category).join(Product, ShoppingList.product_id == Product.id).filter(ShoppingList.user_id == user_id).all()
             shopping_list = orginize_data_shopping_ilsts(shopping_lists_data)
             products_list = db.session.query(Product.id, Product.name, Product.category).order_by(asc(Product.name)).all() 
             products_list_tupels = convert_products_list_to_tauple(products_list)
-            
+            # print(shopping_list)
         except SQLAlchemyError as e:
             print(f"Error: {e}")
-        return render_template('home.html', name=name, shopping_list=shopping_list, products_list = products_list_tupels)
+        if 'shopping_list_name' in session:
+            shopping_list_name = session['shopping_list_name']
+        else: shopping_list_name  = None
+        return render_template('home.html', name=name, shopping_list=shopping_list, products_list = products_list_tupels, shopping_list_name = shopping_list_name)
     else:
         return redirect(url_for('login'))
 
-@app.route("/home_edit", methods = ['POST','GET'])
-def home_edit():
+@app.route("/home_add", methods = ['POST','GET'])
+def home_add():
     if 'username' in session:
         name = session['username']
         user_id = session['user_id']
         if request.method == 'POST':
         #    get all the info to send to database
+
             quantity = request.form.get('quantity') 
             product = request.form.get('product')
             notes = request.form.get('notes')
             shopping_list_name = request.form.get('shopping_list_name')
+            if shopping_list_name:
+                session['shopping_list_name'] = shopping_list_name
             product_id = db.session.query(Product.id).filter_by(name=product).scalar()
-            print(product_id)
-            if product_id:
-                try:
+            if product_id and quantity and int(quantity) >= 1:
+                shopping_list_item = db.session.query(ShoppingList).filter_by(product_id=product_id,shopping_list_name=shopping_list_name).scalar()
+                if shopping_list_item:
+                    shopping_list_item.quantity += int(quantity)
+                    shopping_list_item.notes = notes
+                    flash("Item quantity updated successfully!", "success")
+                else:
                     shopping_list_item = ShoppingList(quantity = quantity, product_id= product_id,  shopping_list_name=shopping_list_name, user_id=user_id, notes=notes)
                     db.session.add(shopping_list_item)
+                    
+                try:
                     db.session.commit()
+                    flash("Item added successfully!", "success")
                 except  psycopg2.IntegrityError as e:
                         print(f"Error inserting user: {e}")
                         flash("An error occurred while saving the user.")
-                        
+            else:
+                flash("Add valid quantity", "warning")
             return redirect('home')
     else:
         redirect(url_for('login'))
 
+@app.route("/home_edit_list", methods = ['POST','GET'])
+def home_edit_list():
+    if 'username' in session:
+        name = session['username']
+        user_id = session['user_id']
+        if request.method == 'POST':
+            action = request.form.get('action')
+            id_item = request.form.get('item_id')     
+            quantity = request.form.get('quantity')
+            product = request.form.get('product')
+            notes = request.form.get('notes')
+            shopping_list_name = request.form.get('shopping_list_name')
+            if 'shopping_list_name' in session:
+                    session['shopping_list_name'] = shopping_list_name
+            item = db.session.query(ShoppingList).filter_by(id =int(id_item )).first()
+            if item:
+                if action == 'update':
+                    if quantity and int(quantity) >= 1:
+                        item.quantity = int(quantity)
+                        item.notes = notes
+                        item.shopping_list_name = shopping_list_name
+                        item.user_id = user_id 
+                        db.session.commit()
+                        flash("Item updated successfully!", "success")
+                    else:
+                        flash("Invalid quantity", "warning")
+                elif action == 'delete':
+                    db.session.delete(item)
+                    db.session.commit()
+                    flash("Item deleted successfully!", "success")
+            else:
+                flash("Item not found", "error")
+        return redirect('home')
+    else:
+        redirect(url_for('login'))   
+
+
+@app.route("/home_edit_new_list", methods = ['POST','GET'])
+def home_edit_new_list():
+    if 'username' in session:
+        name = session['username']
+        user_id = session['user_id']
+        if request.method == 'POST':
+            list_name = request.form.get("new_list")
+            if list_name:
+                quantity = 1
+                notes = None
+                product_id = 124
+                if list_name:
+                    new_item = ShoppingList(quantity = quantity, product_id= product_id,  shopping_list_name=list_name, user_id=user_id, notes=notes)
+                    db.session.add(new_item )
+                try:
+                    db.session.commit()
+                    flash("List added successfully!", "success")
+                except  psycopg2.IntegrityError as e:
+                        print(f"Error inserting user: {e}")
+                        flash("An error occurred while saving the user.")
+            else: flash("Add shopping list name.")
+            return redirect('home')
+        else:
+            flash("An error occurred while saving the user.", "error")
+
+
+    else:
+        redirect(url_for('login'))   
+
+
+@app.route("/home_delete_list", methods = ['POST','GET'])
+def home_delete_list():
+    if 'username' in session:
+        name = session['username']
+        user_id = session['user_id']
+        if request.method == 'POST':
+            list_name_old = request.form.get("list_name_old")
+            list_name = request.form.get("list_name_edit")
+            action = request.form.get('action')
+            if action == "update":
+                if list_name:
+                    db.session.query(ShoppingList).filter(ShoppingList.shopping_list_name == list_name_old, User.id == user_id).update({"shopping_list_name": list_name})          
+                    if 'shopping_list_name' not in session:
+                            session['shopping_list_name'] = list_name
+                    else:
+                        session['shopping_list_name'] = list_name
+            elif action == "delete":
+                db.session.query(ShoppingList).filter(ShoppingList.shopping_list_name == list_name, User.id == user_id).delete()
+            try: 
+                db.session.commit() 
+                flash("Edit Succecful")
+            except:
+                flash(f"An error occurred while saving the user", "error")
+
+        return redirect('home')
+    else:
+        redirect(url_for('login'))   
+
+@app.route("/edit_product_list", methods = ['POST','GET'])
+def edit_product_list():
+    if 'username' in session:
+        name = session['username']
+        user_id = session['user_id']
+        product_list = db.session.query(Product.id, Product.name, Product.category, Product.user_id ).filter((Product.user_id == user_id) | (Product.user_id == None)).all()
+        prodct_list_user_id, product_list_all = convert_products_list_to_edit(product_list, user_id)
+
+        return render_template('edit-lists.html', product_list_all = product_list_all , user_name = name, user_id = user_id, product_list_user = prodct_list_user_id)
+    else:
+        redirect(url_for('login'))   
+
+
+@app.route("/edit_product_list_edit", methods = ['POST','GET'])
+def edit_product_list_edit():
+    if 'username' in session:
+        name = session['username']
+        user_id = session['user_id']
+        if request.method == "POST":
+            product_id = request.form.get("product_id")
+            product_name = request.form.get("product_name")
+            product_category = request.form.get("product_category")
+        item = db.session.query(Product).filter(Product.id == product_id).first()
+        if product_name and product_category:
+            item.category = product_category
+            item.name = product_name
+            item.user_id = user_id
+            try:
+                db.session.commit()
+                flash("Product updated successfully!", "success")
+            except  psycopg2.IntegrityError as e:
+                    print(f"Error inserting user: {e}")
+                    flash("An error occurred while saving the user.")
+        else: flash("Add shopping list name and category.")
+        return redirect(url_for('edit_product_list'))
+    else:
+        redirect(url_for('login'))  
+
+
+@app.route("/edit_product_list_add", methods = ['POST','GET'])
+def edit_product_list_add():
+    if 'username' in session:
+        name = session['username']
+        user_id = session['user_id']
+        if request.method == "POST":
+            product_name = request.form.get("product_name")
+            product_category = request.form.get("category")
+            if product_name and product_category:
+                isUniqe = db.session.query(Product).filter(Product.name == product_name).first()
+                if isUniqe:
+                     flash("Product name already exists", "error")
+                     return redirect(url_for('edit_product_list'))
+                else: 
+                    new_item = Product(name=product_name,  category=product_category, user_id=user_id)
+                    try:
+                        db.session.add(new_item)
+                        db.session.commit()
+                        flash("Product Added successfully!", "success")
+                    except  psycopg2.IntegrityError as e:
+                            print(f"Error inserting user: {e}")
+                            flash("An error occurred while saving the user.")
+            else:  flash("Add shopping list name and category.")       
+        return redirect(url_for('edit_product_list'))
+    else:
+        redirect(url_for('login'))   
+
+@app.route("/loguot", methods = ['POST','GET'])
+def logout():
+    if 'username' in session:
+        session.pop('username', None)
+        session.pop('user_id', None)
+        if 'shopping_list' in session:
+            session.pop('shopping_list', None)
+        return redirect(url_for('login'))
+    else:
+        redirect(url_for('login'))    
 
 if __name__ == "__main__":
     app.run(debug = True, port = 8080)

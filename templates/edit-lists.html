@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+{% block title %}Home{% endblock %}
+{% block main %}
+
+{% with messages = get_flashed_messages(with_categories=True) %}
+  {% if messages %}
+    {% for category, message in messages %}
+      <p class="flash_message {{ category }}">{{ message }}</p>
+    {% endfor %}
+  {% endif %}
+{% endwith %}
+
+<h2>Hi {{ user_name | capitalize }}, You can edit the product list</h2>
+
+{% set categories_user = product_list_user | map(attribute='category') | unique | list %}
+<h4> Your Products:</h4>
+{% for category in categories_user %}
+<div class="{{category}}">
+    <h4>{{ category }}</h4>
+    <ul>
+        {% for product in product_list_user %}
+            {% if product.category == category %}
+                <li>{{ product.name }}</li>
+                <form action="/edit_product_list_edit" method="POST" class="edit_list_form">
+                    <input name="product_name" value="{{product.name}}">
+                    <input name="product_category" value="{{product.category}}">
+                    <input name="product_id" value="{{product.id}}">
+                    <button type="submit" name="action" value="update">✔</button>
+                    <button type="submit" name="action" value="delete">✖</button>  
+                </form>
+            {% endif %}
+        {% endfor%}
+    </ul>
+</div>
+{% endfor %}
+<div>
+    <p>What product would you like to add?</p>
+    <form action="/edit_product_list_add" method="POST" class="edit_list_form">
+        <input name="product_name" placeholder="Add product name">
+        <label for="categories"></label>
+        <input name="category" placeholder="Add category" list="categories" class="category_input">
+        <datalist id="categories">
+            {% set seen_categories = [] %}
+            {% set seen_user_categories = [] %}
+            
+            <!-- Loop through all products  in app-->
+            {% for product in product_list_all %}
+                {% if product.category not in seen_categories %}
+                    <option value="{{ product.category }}">{{ product.category }}</option>
+                    {% set _ = seen_categories.append(product.category) %}
+                {% endif %}
+            {% endfor %}
+    
+            <!-- Loop through user-specific products -->
+            {% for product in product_list_user %}
+                {% if product.category not in seen_user_categories %}
+                    <option value="{{ product.category }}">{{ product.category }}</option>
+                    {% set _ = seen_user_categories.append(product.category) %}
+                {% endif %}
+            {% endfor %}
+        </datalist>
+        <button type="submit" name="Submit">✔</button>
+        <button type="reset" name="reset">✖</button>  
+    </form>
+</div>
+
+{% set categories = product_list_all | map(attribute='category') | unique | list %}
+{% for category in categories %}
+<div class="{{category}}">
+    <h4>{{ category }}</h4>
+    <ul>
+        {% for product in product_list_all %}
+            {% if product.category == category  %}
+                <li>{{ product.name }}</li>
+            {% endif %}
+        {% endfor%}
+    </ul>
+</div>
+{% endfor %}
+
+
+<script src="../static/js/edit_list.js"></script>
+{% endblock %}

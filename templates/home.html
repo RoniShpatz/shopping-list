@@ -1,106 +1,158 @@
 {% extends "base.html" %}
 {% block title %}Home{% endblock %}
-{%block main%}
+{% block main %}
+{% with messages = get_flashed_messages(with_categories=True) %}
+{% if messages %}
 
-<h1>Hello {{ name|capitalize }}, what would you like to do? </h1>
+{% if shopping_list_name %}
+<p id="hidden_shopping_list_name">{{shopping_list_name}}</p>
+{% endif %}
+
+    <ul class="flash-messages">
+        {% for category, message in messages %}
+            <p class="{{ category }}">{{ message }}</p>
+        {% endfor %}
+    </ul>
+{% endif %}
+{% endwith %}
+<h1>Hello {{ name|capitalize }}, what would you like to do?</h1>
 <div>
-    <div>{%for name in shopping_list%}
-        <p> {{name}}</p>
+  
+    <div class="shopping_list_name">
+        {% for name in shopping_list %}
+            <p>{{ name }}</p>
         {% endfor %}
-    </div>
-    <div>
-        {% for list_name, items  in shopping_list.items() %}
         <div>
-            <h2 class="list_name">{{list_name}}</h2>
-            {% set categories = items | map(attribute='category') | unique %}
-
-           
-            {% for category in categories %}
-            <div>
-                <h4>{{ category }}</h4> 
-                <ul>
-           
-                    {% for item in items if item.category == category %}
-                        <li>
-                            {{ item.quantity }} {{ item.name }}
-                            {% if item.notes %}
-                                ({{ item.notes }})
-                            {% endif %}
-                        </li>
-                    {% endfor %}
-                </ul>
-            {% endfor %}
-            </div>
+            <form action="/home_edit_new_list" method="POST">
+                <input name="new_list" placeholder="Add new list">
+                <button type="submit" name="action" >✔</button>
+                <button type="reset" name="action" >✖</button>
+            </form>
         </div>
-    
-        <form action="/home_edit" method="POST" >
-            <input name="shopping_list_name"  class="shopping_list_name_hidden" value="">
-            <input  name="quantity" placeholder="000" type="number" maxlength="4">
-            <label for="products"></label>
-            <input name="product" placeholder="Add product" list="products" class="product-input">
-            <datalist id="products">
-                {% for id, product, category in products_list %}
-                <option value="{{product}}">{{product}} </option>
-                <span id="category">{{category}}</span>
-                {% endfor %}
-                </datalist>
-                <label for="categories"></label>
-                
-                <input name="category" placeholder="Add category" list="categories" class="category_input">
-                <datalist id="categories">
-                    {% set seen_categories = [] %} 
-                    {% for id, product, category in products_list %}
-                    {% if category not in seen_categories %}
-                        <option value="{{ category }}">{{ category }}</option>
-                        {{ seen_categories.append(category)}}
-                    {%  endif %}
-                    {% endfor %}
-                    </datalist>
-            <input name="notes" placeholder="Add notes">
-            <button type="submit">✔</button>
-            <button type="reset">✖</button>
-        </form>
-
     </div>
-    <a href="{{active_shopping}}">Start Shopping</a>
-    <!-- <a href="{{add_products}}">Add products</a> -->
-    <div>
+
+
+    <div class="list_container">
+        {% for list_name, items in shopping_list.items() %}
+           
+            <div class="shopping_list_info {{ list_name }}">
+                <h2 class="list_name">{{ list_name }}</h2>
+                <form action="/home_delete_list" method="POST" class="shopping_list_name_edit_form">
+                    <input name="list_name_old" class="edit_list_name_hidden" value="{{list_name}}">
+                    <input name="list_name_edit" class="edit_list_name" value="{{list_name}}">
+                    <button type="submit" name="action" value="update">✔</button>
+                    <button type="submit" name="action" value="delete">✖</button>
+                </form>
+                {% set categories = items | map(attribute='category') | unique %}
+                {% for category in categories %}
+                    <div class="{{category}}">
+                        <h4 class="category">{{ category }}</h4>
+                        <ul>
+                            {% for item in items if item.category == category %}
+                                <li>
+                                    <span class="list_item">{{ item.quantity }} <span class="item_name">{{ item.name }}</span></span>
+                                    <span>
+                                      <form action="/home_edit_list" method="POST" class="edit_list_form">
+                                        <input name="shopping_list_name" class="shopping_list_name_hidden" value="{{ list_name }}">
+                                        <input name="item_id" class="item_id_hidden" value="{{ item.id }}">
+                                        <input name="quantity" placeholder="000" type="number" maxlength="4" value="{{ item.quantity }}">
+                                        <label for="products"></label>
+                                        <input name="product" placeholder="Add product" list="products" class="product-input" value="{{item.name}}">
+                                        <datalist id="products">
+                                            {% for id, product, category in products_list %}
+                                                <option value="{{ product }}">{{ product }}</option>
+                                            {% endfor %}
+                                        </datalist>
+                                        <label for="categories"></label>
+                                        <input name="category" placeholder="Add category" list="categories" class="category_input" value="{{item.category}}">
+                                        <datalist id="categories">
+                                            {% set seen_categories = [] %}
+                                            {% for  id, product, category in products_list %}
+                                                {% if category not in seen_categories %}
+                                                    <option value="{{ category }}">{{ category }}</option>
+                                                    {{ seen_categories.append(category) }}
+                                                {% endif %}
+                                            {% endfor %}
+                                        </datalist>
+                                        <input name="notes" placeholder="Add notes">
+                                        <button type="submit" name="action" value="update">✔</button>
+                                        <button type="submit" name="action" value="delete">✖</button>
+                                      </form>  
+                                    </span>
+                                    {% if item.notes %}
+                                        ({{ item.notes }})
+                                    {% endif %}
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                {% endfor %}
+
+                
+                <form action="/home_add" method="POST">
+                    <input name="shopping_list_name" class="shopping_list_name_hidden" value="{{ list_name }}">
+                    <input name="quantity" placeholder="000" type="number" maxlength="4">
+                    <label for="products"></label>
+                    <input name="product" placeholder="Add product" list="products" class="product-input">
+                    <datalist id="products">
+                        {% for id, product, category in products_list %}
+                            <option value="{{ product }}">{{ product }}</option>
+                        {% endfor %}
+                    </datalist>
+                    <label for="categories"></label>
+                    <input name="category" placeholder="Add category" list="categories" class="category_input">
+                    <datalist id="categories">
+                        {% set seen_categories = [] %}
+                        {% for id, product, category in products_list %}
+                            {% if category not in seen_categories %}
+                                <option value="{{ category }}">{{ category }}</option>
+                                {{ seen_categories.append(category) }}
+                            {% endif %}
+                        {% endfor %}
+                    </datalist>
+                    <input name="notes" placeholder="Add notes">
+                    <button type="submit">✔</button>
+                    <button type="reset">✖</button>
+                </form>
+
+                <!-- Link to start shopping -->
+                <div>
+                    <a href="{{ active_shopping }}">Start Shopping</a>
+                    <!-- <a href="{{ add_products }}">Add products</a> -->
+                </div>
+            </div>
         {% endfor %}
     </div>
-    <div>
-
- 
-    </div>
-
-
 </div>
 
 
+<script type="text/javascript">
 
-<script type="text/javascript"> 
-  
- var products_list = {{products_list | tojson}} ;         
-var products_list_obj = []
-products_list.forEach(arry => {
-    products_list_obj.push(
-        {
+    var products_list = {{ products_list | tojson }};
+    var products_list_obj = [];
+
+    products_list.forEach(arry => {
+        products_list_obj.push({
             id: arry[0],
             name: arry[1],
             category: arry[2]
-        }
-    )
-})
-productInput = document.querySelectorAll(".product-input")
-categoryInput = document.querySelectorAll(".category_input")
+        });
+    });
 
-productInput.forEach((input, index) => {
-    input.addEventListener("change", () => {
-        var newValue = input.value
-        var product = products_list_obj.find( p => p.name === newValue)
-        categoryInput[index].value = product.category
-    })
-})
+    var productInput = document.querySelectorAll(".product-input");
+    var categoryInput = document.querySelectorAll(".category_input");
+
+    productInput.forEach((input, index) => {
+        input.addEventListener("change", () => {
+            var newValue = input.value;
+            var product = products_list_obj.find(p => p.name === newValue);
+            categoryInput[index].value = product.category;
+        });
+    });
+
 
 </script>
+
+
 <script src="../static/js/home.js"></script>
-{%endblock%}
+{% endblock %}
