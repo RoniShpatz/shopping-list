@@ -2,37 +2,51 @@
 {% block title %}Home{% endblock %}
 {% block main %}
 
+{% with messages = get_flashed_messages(with_categories=True) %}
+  {% if messages %}
+    {% for category, message in messages %}
+      <p class="flash_message {{ category }}">{{ message }}</p>
+    {% endfor %}
+  {% endif %}
+{% endwith %}
+
 <h2>{{name | capitalize}} Profile:</h2>
-<form>
-<!-- to do change username -->
+
+<form action="/profile_edit_username" method="POST">
+<input name="username" placeholder="{{name}}">
+<button type="submit">✔</button>
+<button type="reset">✖</button>
 </form>
 
 <h4>Connections</h4>
 <p>You are conncted to:</p>
 <ul>
-    {% for user in connections_to %}
-<li>{{user.username}}: 
-    {% for name in user.shopping_list_name%} 
-    <p>{{name}}</p>
-    <form action="/shopping_list_disconnect" method="POST">
-        <input name="user_to_join_name" value="{{user.username}}">
-        <input name="shopping_list_name" value="{{name}}">
-        <button type="submit" >Disconnect</button>
-    </form>
+    {% for user in connected_to_list.values() %}
+        <li>{{ user.username }}: 
+            <ul>
+                {% for shopping_list in user.shopping_lists %}
+                    <li>
+                        <p>{{ shopping_list.shopping_list_name }}</p>
+                        <form action="/shopping_list_disconnect" method="POST">
+                            <input type="hidden" name="connection_id" value="{{ shopping_list.connection_id }}">
+                            <button type="submit">Disconnect</button>
+                        </form>
+                    </li>
+                {% endfor %}
+            </ul>
+        </li>
     {% endfor %}
-</li>
-    {% endfor%}  
 </ul>
-
-<form>
+<h4>Send Connection request</h4>
+<form action="/send_connect_request" method="POST">
     <label for="usernames">Send a connect request to user</label>
-    <select id="usernames">
+    <select id="usernames" name="username">
         {% for username in usernames %}
-        <option value="{{username}}">{{username}}</option>
+        <option value="{{username[0]}}">{{username[0]}}</option>
         {% endfor %}
     </select>
     <label for="shopping_list">Choose shopping list to share</label>
-    <select>
+    <select name="shopping_lists">
         {% for name in user_shopping_lists%}
         <option value="{{name}}">{{name}}</option>
         {% endfor %}
@@ -40,12 +54,12 @@
     <button type="submit" >Send</button>
     <button type="reset" >✖</button>
 </form>
-
+<h4>Request to improve:</h4>
 {% for item in request_list %}
 <p>{{item[0]}} wants to connect shopping list name "{{item[1]}}"</p>
 <form action="/shopping_connect_decline" method="POST">
     <input name="user_id" value="{{item[2]}}">
-    <input name="conncetion_id" value="{{item[3]}}">
+    <input name="connection_id" value="{{item[3]}}">
     <button type="submit" action = "connect" value="connect">Connect</button>
     <button type="submit" action = "dicline" value="decline">Decline</button>
 </form>

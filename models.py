@@ -49,8 +49,7 @@ class ShoppingList(db.Model):
     shopping_list_name = db.mapped_column(db.String, nullable=False)
     user_id = db.mapped_column(db.Integer, db.ForeignKey('users.id'), nullable=True)
     notes = db.mapped_column(db.String, nullable=False)
-    is_connected = db.mapped_column(db.Boolean, nullable = False)
-    user_id_connect = db.mapped_column(db.Integer, nullable=True)
+
 
 class Connections(db.Model):
     __tablename__ = 'connections'
@@ -59,9 +58,12 @@ class Connections(db.Model):
     is_send = db.mapped_column(db.Boolean, nullable = True)
     is_excepted = db.mapped_column(db.Boolean, nullable = True)
     user_id_join = db.mapped_column(db.Integer, nullable=True)
-    #3.9 work year:
-    shopping_list_id = db.mapped_column(db.Integer, db.ForeignKey('shopping_lists.id'), nullable=True)
+   
+    shopping_list_id = db.mapped_column(db.Integer, db.ForeignKey('shopping_list_user.id'), nullable=True)
 
 
-
- 
+class ShoppingListUser(db.Model):
+    __tablename__ = 'shopping_list_user'
+    id = db.mapped_column(db.Integer, primary_key=True)
+    shopping_list_name = db.mapped_column(db.String, nullable=False)
+    user_id = db.mapped_column(db.Integer, db.ForeignKey('users.id'), nullable=True)

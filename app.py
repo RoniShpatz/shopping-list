@@ -5,9 +5,9 @@ from psycopg2 import sql
 from flask_bcrypt import Bcrypt 
 # making an env var 
 from dotenv import load_dotenv  # take environment variables from .env.
-from def_shopping_lists import orginize_data_shopping_ilsts, convert_products_list_to_tauple, convert_products_list_to_edit,get_product_id_by_user_id, connection_user_list, get_usernames_connected_and_shopping_lists,convert_tuples_to_list, convert_tuples_and_remove_doubles
+from def_shopping_lists import orginize_data_shopping_ilsts, convert_products_list_to_tauple, convert_products_list_to_edit,get_product_id_by_user_id, connection_user_list,  convert_tuples_and_remove_doubles
 from flask_sqlalchemy import SQLAlchemy
-from models import User, db, ActiveShopping, Product, ShoppingList, Connections
+from models import User, db, ActiveShopping, Product, ShoppingList, Connections, ShoppingListUser
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy import select, asc
 
@@ -46,7 +46,7 @@ def login():
             # Query the user by username using SQLAlchemy
             stmt = select(User).where(User.username == username)
             user = db.session.execute(stmt).scalars().first()
-            print(user)
+            # print(user)
             if user: 
                 stored_hash = user.password
                 if verify_password(stored_hash, password):
@@ -107,7 +107,7 @@ def home():
             products_list_tupels = convert_products_list_to_tauple(products_list)
             product_list_to_data_list = db.session.query(Product.id, Product.name, Product.category, Product.user_id).order_by(asc(Product.name)).all() 
             products_list_user, products_list_all = convert_products_list_to_edit(product_list = product_list_to_data_list, user_id=user_id)
-            print(products_list_user, products_list_all)
+            # print(products_list_user, products_list_all)
         except SQLAlchemyError as e:
             print(f"Error: {e}")
         if 'shopping_list_name' in session:
@@ -200,18 +200,33 @@ def home_edit_new_list():
         if request.method == 'POST':
             list_name = request.form.get("new_list")
             if list_name:
-                quantity = 1
-                notes = None
-                product_id = 124
-                if list_name:
-                    new_item = ShoppingList(quantity = quantity, product_id= product_id,  shopping_list_name=list_name, user_id=user_id, notes=notes)
-                    db.session.add(new_item )
-                try:
-                    db.session.commit()
-                    flash("List added successfully!", "success")
-                except  psycopg2.IntegrityError as e:
-                        print(f"Error inserting user: {e}")
-                        flash("An error occurred while saving the user.")
+                new_shopping_list = (
+                    db.session.query(ShoppingListUser)
+                    .filter(ShoppingListUser.user_id == user_id, ShoppingListUser.shopping_list_name == list_name)
+                    .first()
+                )
+                if new_shopping_list :
+                    flash("Shopping list already exists.", "warning")
+                else:
+                    new_shopping_list = ShoppingListUser(
+                        shopping_list_name=list_name,
+                        user_id=user_id
+                    )
+                    new_shopping_list_item = ShoppingList(
+                        quantity = 1,
+                        product_id = 124,
+                        shopping_list_name = list_name,
+                        user_id = user_id,
+                        notes = None
+                    )
+                    try:
+                        db.session.add(new_shopping_list_item)
+                        db.session.add(new_shopping_list)
+                        db.session.commit()
+                        flash("List added successfully!", "success")
+                    except  psycopg2.IntegrityError as e:
+                            print(f"Error inserting user: {e}")
+                            flash("An error occurred while saving the user.")
             else: flash("Add shopping list name.")
             return redirect('home')
         else:
@@ -274,7 +289,7 @@ def edit_product_list_edit():
             product_category = request.form.get("product_category")
             product_action = request.form.get("action")          
             item = db.session.query(Product).filter(Product.id == product_id, Product.category == product_category).first()
-            print(item)
+            # print(item)
             if product_action == 'delete':
                 db.session.delete(item)
             elif product_action == 'update':
@@ -304,7 +319,7 @@ def edit_product_list_add():
             product_category = request.form.get("category")
             if product_name and product_category:
                 isUniqe = db.session.query(Product).filter(Product.name == product_name, Product.user_id == user_id).first()
-                print(isUniqe)
+                # print(isUniqe)
                 if isUniqe:
                      flash("Product name already exists", "error")
                      return redirect(url_for('edit_product_list'))
@@ -328,25 +343,157 @@ def profile():
     if 'username' in session:
         name = session['username']
         user_id = session['user_id']
-        # current_username = db.session.query(User).filter(User.user_id == user_id)
-        user_conncted_to = db.session.query( Connections.user_id_join, Connections.shopping_list_id).filter(Connections.user_id == user_id, Connections.is_excepted == True).all()
-        user_connect_from = db.session.query( Connections.user_id, Connections.shopping_list_id).filter(Connections.user_id_join == user_id, Connections.is_excepted == True).all()
-        all_connections = connection_user_list(user_conncted_to, user_connect_from, user_id)
-        usernames_shoping_lists = get_usernames_connected_and_shopping_lists(all_connections)#get the usernames and the shoppinglists names functions
-        usernames_list_tuples = db.session.query(User.username).all()
-        usernames_list = convert_tuples_to_list(usernames_list_tuples)
-        user_shopping_list_tauple = db.session.query(ShoppingList.shopping_list_name).filter(ShoppingList.user_id == user_id).all()
+        connected_to_user = (db.session.query(Connections.id, ShoppingListUser.shopping_list_name, User.username)
+                            .join(Connections, Connections.shopping_list_id == ShoppingListUser.id)
+                            .join(User, Connections.user_id_join == User.id)
+                            .filter(Connections.user_id == user_id, Connections.is_excepted == True).all()
+                            )
+        
+        connected_by_user = (
+                            db.session.query(Connections.id, ShoppingListUser.shopping_list_name, User.username)
+                            .join(Connections, Connections.shopping_list_id == ShoppingListUser.id)
+                            .join(User, Connections.user_id == User.id)
+                            .filter(Connections.user_id_join == user_id, Connections.is_excepted == True).all()
+                            )
+        connected_to_list = connection_user_list(connected_to_user, connected_by_user, user_id)
+        usernames_list = db.session.query(User.username).filter(User.username != name).all()
+        # print(usernames_list)
+        user_shopping_list_tauple = db.session.query(ShoppingListUser.shopping_list_name).filter(ShoppingListUser.user_id == user_id).all()
         user_shopping_list = convert_tuples_and_remove_doubles(user_shopping_list_tauple)
         except_by_user = (
-                            db.session.query(User.username, ShoppingList.shopping_list_name, Connections.user_id, Connections.id)
+                            db.session.query(User.username, ShoppingListUser.shopping_list_name, Connections.user_id, Connections.id)
                             .join(Connections, Connections.user_id == User.id)  
-                            .join(ShoppingList, Connections.shopping_list_id == ShoppingList.id) 
-                            .filter(Connections.user_id == user_id, Connections.is_excepted == False)  
+                            .join(ShoppingListUser, Connections.shopping_list_id == ShoppingListUser.id) 
+                            .filter(Connections.user_id_join == user_id, Connections.is_excepted == False)  
                             .all()
                         )
        
         # print(except_by_user)
-        return render_template("profile.html", name=name, connections_to = usernames_shoping_lists, usernames = usernames_list, user_shopping_lists = user_shopping_list, request_list = except_by_user)
+        return render_template("profile.html", name=name,  user_shopping_lists = user_shopping_list, request_list = except_by_user, connected_to_list = connected_to_list, usernames = usernames_list)
+    else:
+        redirect(url_for('login'))
+
+@app.route("/profile_edit_username", methods=['POST', 'GET'])
+def profile_edit_username():
+    if 'username' in session:
+        name = session['username']
+        user_id = session['user_id']
+        if request.method == 'POST':
+            new_username = request.form.get("username")
+            if new_username and new_username != name:
+                user = db.session.query(User).filter(User.id == user_id).first()
+                user_username = db.session.query(User.username).filter(User.username == new_username).first()
+                if user_username:
+                    flash("Username allredy exist.","category")
+                    return redirect(url_for('profile'))
+                if user:
+                    user.username = new_username
+                    try:
+                        db.session.commit()
+                        flash("Username updated successfully.","category")
+                        session['username'] = new_username
+                    except psycopg2.IntegrityError as e:
+                            print(f"Error inserting user: {e}")
+                            flash("An error occurred while saving the user." ,"category")
+                else:
+                    flash("User not found.","category")
+        return redirect(url_for('profile'))
+    else:
+        return redirect(url_for('login'))      
+
+
+@app.route("/shopping_list_disconnect", methods=['POST', 'GET'])
+def shopping_list_disconnect():
+    if 'username' in session:
+        name = session['username']
+        user_id = session['user_id']
+        if request.method == 'POST':
+            connection_id = request.form.get("connection_id")
+            if connection_id:
+                connection = db.session.query(Connections).filter(Connections.id == int(connection_id)).first()
+                if connection:
+                    try:
+                        db.session.delete(connection)
+                        db.session.commit()
+                        flash("Connection delteted successfully.","category")
+                    except psycopg2.IntegrityError as e:
+                            db.session.rollback() 
+                            print(f"Error inserting user: {e}")
+                            flash("An error occurred while saving the user." ,"category")
+                
+            else: 
+                flash("Conncetion not found.","category")
+        return redirect(url_for('profile'))
+
+    else:
+        return redirect(url_for('login')) 
+
+@app.route("/send_connect_request", methods=['POST', 'GET'])
+def send_connect_request():
+    if 'username' in session:
+        name = session['username']
+        user_id = session['user_id']
+        if request.method == 'POST':
+            username_to_connect = request.form.get("username")
+            shopping_list_to_share = request.form.get("shopping_lists")
+            if username_to_connect and shopping_list_to_share:
+                connection = (
+                    db.session.query(Connections)
+                    .join(ShoppingListUser, ShoppingListUser.shopping_list_name == shopping_list_to_share)
+                    .join(User, User.username == username_to_connect)
+                    .filter(Connections.user_id == user_id or Connections.user_id_join == user_id).first()
+                )
+                if connection:
+                    flash("Connection already exist","warning")
+                else:
+                    shopping_list_user_id = (
+                        db.session.query(ShoppingListUser.id, User.id)
+                        .join(User, User.username == username_to_connect)
+                        .filter(ShoppingListUser.shopping_list_name == shopping_list_to_share)
+                        .first()
+                    ) 
+                    print(shopping_list_user_id)
+                    new_connection = Connections(
+                        user_id = user_id,
+                        is_send = True,
+                        is_excepted = False,
+                        user_id_join = shopping_list_user_id[1],
+                        shopping_list_id = shopping_list_user_id[0]
+                    )
+                    try:
+                        db.session.add(new_connection)
+                        db.session.commit()
+                        flash("Request sent","success")
+                    except psycopg2.IntegrityError as e:
+                            db.session.rollback() 
+                            print(f"Error inserting user: {e}")
+                            flash("An error occurred while saving the user." ,"category")
+            else:
+                flash("Choose valid username and shopping list","category")
+        return redirect('profile')
+    else:
+        redirect(url_for('login')) 
+
+
+@app.route("/shopping_connect_decline", methods=['POST', 'GET'])
+def shopping_connect_decline():
+    if 'username' in session:
+        name = session['username']
+        user_id = session['user_id']
+        if request.method == 'POST':
+            user_id_to_except = request.form.get("user_id")
+            connection_id = request.form.get("connection_id")
+            connection_to_update = db.session.query(Connections).filter(Connections.user_id == user_id_to_except, Connections.id == connection_id).first()
+            if connection_to_update:
+                connection_to_update.is_excepted = True
+                try:
+                    db.session.commit()
+                    flash("Request approved","success")
+                except psycopg2.IntegrityError as e:
+                    db.session.rollback() 
+                    print(f"Error inserting user: {e}")
+                    flash("An error occurred while saving the user." ,"category")
+            return redirect('profile')
     else:
         redirect(url_for('login')) 
 

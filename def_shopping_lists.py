@@ -52,20 +52,23 @@ def get_product_id_by_user_id(products, user_id):
 
 #get the connection of a user- who the user connect to and who is connected to user.
 
-def connection_user_list(connection1, conection2, user_id):
+def connection_user_list(connection1, conection2, username):
     combiend_list = connection1 + conection2
     user_dict = {}
     
-    for id, shopping_list_id in combiend_list:
-        if id != user_id:
-            if id not in user_dict:
-                user_dict[id] = []
-            user_dict[id].append(shopping_list_id)
-    for shopping_lists in user_dict.values():
-        shopping_lists.sort()
-    
-    result = [{"user_id": id, "shopping_list_id": shopping_lists} for id, shopping_lists in user_dict.items()]
-    return result   
+    for connection_id, shopping_list_name, username in combiend_list:
+        if username not in user_dict:
+            user_dict[username] = {
+                "username": username,
+                "shopping_lists": []
+            }
+        user_dict[username]["shopping_lists"].append({
+            "shopping_list_name": shopping_list_name,
+            "connection_id": connection_id
+        })
+        result = list(user_dict.values())
+   
+    return user_dict  
 
 #get the name of the users that the user connected to in a list without doubels numbers
 
@@ -93,10 +96,6 @@ def get_usernames_connected_and_shopping_lists(list_of_dict):
     
     return all_data
 
-#convert the usename tulpes to llist of names
-
-def convert_tuples_to_list(tuple_list):
-    return [name[0] for name in tuple_list]
 
 # convert shopping lists names and remove doubles
 
@@ -106,3 +105,5 @@ def convert_tuples_and_remove_doubles(tuple_list):
         if item[0] not in all:
             all.append(item[0])
     return all
+
+
