@@ -5,7 +5,7 @@ from psycopg2 import sql
 from flask_bcrypt import Bcrypt 
 # making an env var 
 from dotenv import load_dotenv  # take environment variables from .env.
-from def_shopping_lists import orginize_data_shopping_ilsts, convert_products_list_to_tauple, convert_products_list_to_edit,get_product_id_by_user_id, connection_user_list, get_usernames_connected
+from def_shopping_lists import orginize_data_shopping_ilsts, convert_products_list_to_tauple, convert_products_list_to_edit,get_product_id_by_user_id, connection_user_list, get_usernames_connected_and_shopping_lists,convert_tuples_to_list, convert_tuples_and_remove_doubles
 from flask_sqlalchemy import SQLAlchemy
 from models import User, db, ActiveShopping, Product, ShoppingList, Connections
 from sqlalchemy.exc import SQLAlchemyError
@@ -323,18 +323,43 @@ def edit_product_list_add():
         redirect(url_for('login'))   
 
 
-@app.route("/profile", methods = ['POST','GET'])
+@app.route("/profile", methods = ['GET'])
 def profile():
     if 'username' in session:
         name = session['username']
         user_id = session['user_id']
-        current_username = db.session.query(Connections)
-
-
-        return render_template("profile.html", name=name)
+        # current_username = db.session.query(User).filter(User.user_id == user_id)
+        user_conncted_to = db.session.query( Connections.user_id_join, Connections.shopping_list_id).filter(Connections.user_id == user_id, Connections.is_excepted == True).all()
+        user_connect_from = db.session.query( Connections.user_id, Connections.shopping_list_id).filter(Connections.user_id_join == user_id, Connections.is_excepted == True).all()
+        all_connections = connection_user_list(user_conncted_to, user_connect_from, user_id)
+        usernames_shoping_lists = get_usernames_connected_and_shopping_lists(all_connections)#get the usernames and the shoppinglists names functions
+        usernames_list_tuples = db.session.query(User.username).all()
+        usernames_list = convert_tuples_to_list(usernames_list_tuples)
+        user_shopping_list_tauple = db.session.query(ShoppingList.shopping_list_name).filter(ShoppingList.user_id == user_id).all()
+        user_shopping_list = convert_tuples_and_remove_doubles(user_shopping_list_tauple)
+        except_by_user = (
+                            db.session.query(User.username, ShoppingList.shopping_list_name, Connections.user_id, Connections.id)
+                            .join(Connections, Connections.user_id == User.id)  
+                            .join(ShoppingList, Connections.shopping_list_id == ShoppingList.id) 
+                            .filter(Connections.user_id == user_id, Connections.is_excepted == False)  
+                            .all()
+                        )
+       
+        # print(except_by_user)
+        return render_template("profile.html", name=name, connections_to = usernames_shoping_lists, usernames = usernames_list, user_shopping_lists = user_shopping_list, request_list = except_by_user)
     else:
-        redirect(url_for('login'))    
+        redirect(url_for('login')) 
 
+# @app.route("/shopping_list_disconnect", methods=['POST', 'GET'])
+# def shopping_list_disconnect():
+#     if 'username' in session:
+#         name = session['username']
+#         user_id = session['user_id']
+#         if request.method == 'POST':
+
+
+#     else:
+#         redirect(url_for('login')) 
 
 
 @app.route("/loguot", methods = ['POST','GET'])

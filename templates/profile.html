@@ -4,16 +4,55 @@
 
 <h2>{{name | capitalize}} Profile:</h2>
 <form>
-<!-- change username -->
+<!-- to do change username -->
 </form>
 
 <h4>Connections</h4>
-<p>You are conncted to Users</p>
+<p>You are conncted to:</p>
 <ul>
-    {% for name in connections %}
-<li>{{name}}</li>
+    {% for user in connections_to %}
+<li>{{user.username}}: 
+    {% for name in user.shopping_list_name%} 
+    <p>{{name}}</p>
+    <form action="/shopping_list_disconnect" method="POST">
+        <input name="user_to_join_name" value="{{user.username}}">
+        <input name="shopping_list_name" value="{{name}}">
+        <button type="submit" >Disconnect</button>
+    </form>
+    {% endfor %}
+</li>
     {% endfor%}  
 </ul>
+
+<form>
+    <label for="usernames">Send a connect request to user</label>
+    <select id="usernames">
+        {% for username in usernames %}
+        <option value="{{username}}">{{username}}</option>
+        {% endfor %}
+    </select>
+    <label for="shopping_list">Choose shopping list to share</label>
+    <select>
+        {% for name in user_shopping_lists%}
+        <option value="{{name}}">{{name}}</option>
+        {% endfor %}
+    </select>
+    <button type="submit" >Send</button>
+    <button type="reset" >✖</button>
+</form>
+
+{% for item in request_list %}
+<p>{{item[0]}} wants to connect shopping list name "{{item[1]}}"</p>
+<form action="/shopping_connect_decline" method="POST">
+    <input name="user_id" value="{{item[2]}}">
+    <input name="conncetion_id" value="{{item[3]}}">
+    <button type="submit" action = "connect" value="connect">Connect</button>
+    <button type="submit" action = "dicline" value="decline">Decline</button>
+</form>
+{% endfor %}
+
+
+
 
 
 

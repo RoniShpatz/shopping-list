@@ -52,27 +52,57 @@ def get_product_id_by_user_id(products, user_id):
 
 #get the connection of a user- who the user connect to and who is connected to user.
 
-def connection_user_list(connection1, conection2):
-    all_connections = []
-    if connection1:
-        for list_connection in connection1:
-            for num in list_connection:
-                all_connections.append(num)
-    if conection2:
-        for list_connection in conection2:
-            for num in list_connection:
-                if num not in all_connections:
-                    all_connections.append(num)
-    return all_connections
-
-def get_usernames_connected(list_of_users_id):
-    list_of_usernames = []
-    for num in list_of_users_id:
-        username = db.session.query(User.username).filter(User.id == num).first()
-        if username:
-            for name in username:
-                if name not in list_of_usernames:
-                    list_of_usernames.append(name)
-    return list_of_usernames
-
+def connection_user_list(connection1, conection2, user_id):
+    combiend_list = connection1 + conection2
+    user_dict = {}
     
+    for id, shopping_list_id in combiend_list:
+        if id != user_id:
+            if id not in user_dict:
+                user_dict[id] = []
+            user_dict[id].append(shopping_list_id)
+    for shopping_lists in user_dict.values():
+        shopping_lists.sort()
+    
+    result = [{"user_id": id, "shopping_list_id": shopping_lists} for id, shopping_lists in user_dict.items()]
+    return result   
+
+#get the name of the users that the user connected to in a list without doubels numbers
+
+def get_usernames_connected_and_shopping_lists(list_of_dict):
+    all_data = []
+    
+    for item in list_of_dict:
+        user_id = item['user_id']
+        shopping_list_ids = item['shopping_list_id']
+        
+        new_dict = {}
+        
+        username = db.session.query(User.username).filter(User.id == user_id).scalar()
+        new_dict['username'] = username
+        
+        shopping_list_names = []
+        
+        for shopping_list_id in shopping_list_ids:
+            shopping_list_name = db.session.query(ShoppingList.shopping_list_name).filter(ShoppingList.id == shopping_list_id).scalar()
+            shopping_list_names.append(shopping_list_name)
+        
+        new_dict['shopping_list_name'] = shopping_list_names
+        
+        all_data.append(new_dict)
+    
+    return all_data
+
+#convert the usename tulpes to llist of names
+
+def convert_tuples_to_list(tuple_list):
+    return [name[0] for name in tuple_list]
+
+# convert shopping lists names and remove doubles
+
+def convert_tuples_and_remove_doubles(tuple_list):
+    all = []
+    for item in tuple_list:
+        if item[0] not in all:
+            all.append(item[0])
+    return all
