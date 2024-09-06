@@ -1,9 +1,14 @@
-shoppingListName = document.querySelectorAll(".shopping_list_name_hidden");
-shoppingListNameH2 = document.querySelectorAll(".list_name");
-shoppingListOn = document.getElementById("hidden_shopping_list_name");
-shoppingListEditForm = document.querySelectorAll(".shopping_list_name_edit_form")
+const shoppingListName = document.querySelectorAll(".shopping_list_name_hidden");
+const shoppingListNameH2 = document.querySelectorAll(".list_name");
+const shoppingListOn = document.getElementById("hidden_shopping_list_name");
+const shoppingListEditForm = document.querySelectorAll(".shopping_list_name_edit_form")
+const inputListNameActive = document.getElementById("input_list_name")
+const startShoppingForm = document.querySelectorAll(".start_shopping")
 let indexON = 0;  
 
+startShoppingForm.forEach(form => {
+    form.style.display = 'none'  
+}) 
 
 
 window.addEventListener('load', (e) => {
@@ -13,6 +18,8 @@ window.addEventListener('load', (e) => {
             if (shoppingListOn.innerText === h2.innerText) {
                 indexON = index; 
             }
+
+      
         });
     }
 
@@ -44,6 +51,7 @@ window.addEventListener('load', (e) => {
             div.style.display = "none";
         }
     });
+
 });
 
 
@@ -51,10 +59,10 @@ shoppingListName.forEach(input => {
     input.style.display = 'none';
 });
 
-shoppingListNameP = document.querySelectorAll(".shopping_list_name p");
-shoppingListInfoDiv = document.querySelectorAll(".shopping_list_info");
+const shoppingListNameP = document.querySelectorAll(".shopping_list_name p");
+const shoppingListInfoDiv = document.querySelectorAll(".shopping_list_info");
 
-
+// solve value of list name
 shoppingListNameP.forEach((p, index) => {
     p.addEventListener("click", () => {
         shoppingListInfoDiv.forEach(div => {
@@ -71,7 +79,7 @@ itemId.forEach(item => {
     item.style.display = "none"
 })
 
-listItems = document.querySelectorAll(".list_item")
+listItems = document.querySelectorAll(".item_name")
 formEditItem = document.querySelectorAll(".edit_list_form")
 isClicked = false
 
@@ -82,7 +90,7 @@ formEditItem.forEach(form => {
 listItems.forEach((item, index) => {
     item.addEventListener("click", () => {
         if (isClicked) {
-        formEditItem[index].style.display = "inline"
+        formEditItem[index].style.display = "block"
         isClicked = false
         } else {
             formEditItem[index].style.display = "none"

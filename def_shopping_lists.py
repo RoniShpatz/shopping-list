@@ -12,10 +12,11 @@ from flask_sqlalchemy import SQLAlchemy
 #sort the user's shoppings lists
 def orginize_data_shopping_ilsts(tauple):
     shopping_list_fix = {}
-    for id, quantity, shopping_list_name, note, product, category in tauple:
+    for user_id, id, quantity, shopping_list_name, note, product, category in tauple:
         if shopping_list_name not in shopping_list_fix:
             shopping_list_fix[shopping_list_name] = []
         shopping_list_fix[shopping_list_name].append( {
+            'user_id': user_id,
             'id': id,
             'quantity': quantity,
             'name': product,
@@ -106,4 +107,18 @@ def convert_tuples_and_remove_doubles(tuple_list):
             all.append(item[0])
     return all
 
+#get and get the gata of the shopping_list shared with uer
 
+def get_shared_shopping_list_data(list_shared):
+    data = []
+    for user_id, shopping_list_name in list_shared:
+        info = (
+        db.session.query(ShoppingList.user_id, ShoppingList.id, ShoppingList.quantity, 
+                         ShoppingList.shopping_list_name, ShoppingList.notes, Product.name, 
+                         Product.category)
+                .join(Product, ShoppingList.product_id == Product.id)
+                .filter(ShoppingList.user_id == user_id, ShoppingList.shopping_list_name == shopping_list_name)
+                ).all()
+        if info:
+            data.append(info)
+    return data

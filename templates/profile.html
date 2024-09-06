@@ -10,9 +10,9 @@
   {% endif %}
 {% endwith %}
 
-<h2>{{name | capitalize}} Profile:</h2>
+<h2><span class="username_on_off">{{name | capitalize}}</span> Profile:</h2>
 
-<form action="/profile_edit_username" method="POST">
+<form action="/profile_edit_username" method="POST" class="chage_name_form">
 <input name="username" placeholder="{{name}}">
 <button type="submit">✔</button>
 <button type="reset">✖</button>
@@ -61,33 +61,11 @@
     <input name="user_id" value="{{item[2]}}">
     <input name="connection_id" value="{{item[3]}}">
     <button type="submit" action = "connect" value="connect">Connect</button>
-    <button type="submit" action = "dicline" value="decline">Decline</button>
 </form>
 {% endfor %}
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+<script src="../static/js/profile.js"></script>
 
 {% endblock %}

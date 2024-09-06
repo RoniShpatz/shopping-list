@@ -41,7 +41,7 @@
                     <input name="list_name_old" class="edit_list_name_hidden" value="{{list_name}}">
                     <input name="list_name_edit" class="edit_list_name" value="{{list_name}}">
                     <button type="submit" name="action" value="update">✔</button>
-                    <button type="submit" name="action" value="delete">✖</button>
+                    <button type="submit" name="action" value="delete">Delete</button>
                 </form>
                 {% set categories = items | map(attribute='category') | unique %}
                 {% for category in categories %}
@@ -50,12 +50,13 @@
                         <ul>
                             {% for item in items if item.category == category %}
                                 <li>
-                                    <span class="list_item">{{ item.quantity }} <span class="item_name">{{ item.name }}</span></span>
-                                    <span>
+                                    <span class="list_item">{{ item.quantity }} <span class="item_name">{{ item.name }}</span>
+                                    <!-- <p>{{item.user_id}}</p> -->
                                       <form action="/home_edit_list" method="POST" class="edit_list_form">
                                         <input name="shopping_list_name" class="shopping_list_name_hidden" value="{{ list_name }}">
                                         <input name="item_id" class="item_id_hidden" value="{{ item.id }}">
                                         <input name="quantity" placeholder="000" type="number" maxlength="4" value="{{ item.quantity }}">
+
                                         <label for="products"></label>
                                         <input name="product" placeholder="Add product" list="products" class="product-input" value="{{item.name}}">
                                         <datalist id="products">
@@ -78,6 +79,7 @@
                                             {% endfor %}
                                         </datalist>
                                         <input name="notes" placeholder="Add notes">
+
                                         <button type="submit" name="action" value="update">✔</button>
                                         <button type="submit" name="action" value="delete">✖</button>
                                       </form>  
@@ -94,6 +96,7 @@
                 
                 <form action="/home_add" method="POST">
                     <input name="shopping_list_name" class="shopping_list_name_hidden" value="{{ list_name }}">
+                    <input name="user_id" value="{{ items[0].user_id}}" type="hidden">
                     <input name="quantity" placeholder="000" type="number" maxlength="4">
                     <label for="products"></label>
                     <input name="product" placeholder="Add product" list="products" class="product-input">
@@ -123,8 +126,14 @@
 
                 <!-- Link to start shopping -->
                 <div>
-                    <a href="{{ active_shopping }}">Start Shopping</a>
-                    <!-- <a href="{{ add_products }}">Add products</a> -->
+                    <form action="/active_shopping" method="POST" >
+                        <div class="start_shopping">
+                            <input name="shopping_list_name" id="input_list_name" value="{{list_name}}">
+                            <input name="username" value="{{name}}" >
+                        </div>
+                        <button type="submit">Start Shopping</button>
+                    </form>
+
                 </div>
             </div>
         {% endfor %}
@@ -157,8 +166,29 @@
     });
     }
 
+    const share_json = {{share | tojson}}
+    const share_with_user_json = {{share_with_user | tojson}}
+    const paraShoppingListName = document.querySelectorAll(".shopping_list_name p")
 
+    if (share_json || share_with_user_json) {
+    paraShoppingListName.forEach(p => {
+        // Loop through share_json to compare
+        share_json.forEach(obj => {
+            if (p.innerText.trim() === obj.shopping_list_name) {
+                p.innerText = `${obj.shopping_list_name} shared with ${obj.user_name}`;
+                p.style.color = 'blue'
+            }
+        });
 
+        // Loop through share_with_user_json to compare
+        share_with_user_json.forEach(obj => {
+            if (p.innerText.trim() === obj.shopping_list_name) {
+                p.innerText = `${obj.shopping_list_name} shared by ${obj.user_name}`
+                p.style.color = 'red'
+            }
+        });
+    });
+}
 </script>
 
 

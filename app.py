@@ -5,7 +5,7 @@ from psycopg2 import sql
 from flask_bcrypt import Bcrypt 
 # making an env var 
 from dotenv import load_dotenv  # take environment variables from .env.
-from def_shopping_lists import orginize_data_shopping_ilsts, convert_products_list_to_tauple, convert_products_list_to_edit,get_product_id_by_user_id, connection_user_list,  convert_tuples_and_remove_doubles
+from def_shopping_lists import orginize_data_shopping_ilsts, convert_products_list_to_tauple, convert_products_list_to_edit,get_product_id_by_user_id, connection_user_list,  convert_tuples_and_remove_doubles, get_shared_shopping_list_data
 from flask_sqlalchemy import SQLAlchemy
 from models import User, db, ActiveShopping, Product, ShoppingList, Connections, ShoppingListUser
 from sqlalchemy.exc import SQLAlchemyError
@@ -101,19 +101,52 @@ def home():
         session['user_id'] = user_id
         # print(user_id)
         try:
-            shopping_lists_data = db.session.query(ShoppingList.id, ShoppingList.quantity, ShoppingList.shopping_list_name, ShoppingList.notes, Product.name, Product.category).join(Product, ShoppingList.product_id == Product.id).filter(ShoppingList.user_id == user_id).all()
-            shopping_list = orginize_data_shopping_ilsts(shopping_lists_data)
+            shopping_list_user_share = (
+                db.session.query(ShoppingListUser.shopping_list_name, User.username)
+                .join(Connections, ShoppingListUser.id == Connections.shopping_list_id)
+                .join(User, Connections.user_id_join == User.id)
+                .filter(Connections.user_id == user_id).all()
+            )
+            shopping_lists_connected_to_user = (
+                db.session.query(ShoppingListUser.user_id, ShoppingListUser.shopping_list_name)
+                .join(Connections, ShoppingListUser.id == Connections.shopping_list_id).filter(Connections.user_id_join == user_id).all()
+            )
+            shared_shopping_list_data = get_shared_shopping_list_data(shopping_lists_connected_to_user)
+            user_shopping_list_data = db.session.query(ShoppingList.user_id, ShoppingList.id, ShoppingList.quantity, ShoppingList.shopping_list_name, ShoppingList.notes,  Product.name, Product.category).join(Product, ShoppingList.product_id == Product.id).filter(ShoppingList.user_id == user_id).all()
+            all_shopping_list_data = shared_shopping_list_data[0] + user_shopping_list_data
+            # print(all_shopping_list_data)
+            # convert lists to lists of dict so jinja2 could make it json
+            share_with_user = (
+                 db.session.query(ShoppingListUser.shopping_list_name, User.username)
+                .join(Connections, ShoppingListUser.id == Connections.shopping_list_id)
+                .join(User, Connections.user_id == User.id)
+                .filter(Connections.user_id_join == user_id, Connections.is_excepted == True).all()
+            )
+            shopping_list_user_share_to_list = [{'shopping_list_name': item[0], 'user_name': item[1]} for item in shopping_list_user_share]
+            shopping_lists_shared_with_user = [{'shopping_list_name': item[0], 'user_name': item[1]} for item in share_with_user]
+            # print(  shopping_lists_shared_with_user, shopping_list_user_share_to_list )
+
+
+            shopping_list = orginize_data_shopping_ilsts(all_shopping_list_data)
             products_list = db.session.query(Product.id, Product.name, Product.category).order_by(asc(Product.name)).all() 
             products_list_tupels = convert_products_list_to_tauple(products_list)
             product_list_to_data_list = db.session.query(Product.id, Product.name, Product.category, Product.user_id).order_by(asc(Product.name)).all() 
             products_list_user, products_list_all = convert_products_list_to_edit(product_list = product_list_to_data_list, user_id=user_id)
-            # print(products_list_user, products_list_all)
+          
         except SQLAlchemyError as e:
             print(f"Error: {e}")
         if 'shopping_list_name' in session:
             shopping_list_name = session['shopping_list_name']
         else: shopping_list_name  = None
-        return render_template('home.html', name=name, shopping_list=shopping_list, products_list = products_list_tupels, products_list_all = products_list_all, products_list_user = products_list_user, shopping_list_name = shopping_list_name)
+        return render_template('home.html', 
+                               name=name, shopping_list=shopping_list, 
+                               products_list = products_list_tupels, 
+                               products_list_all = products_list_all, 
+                               products_list_user = products_list_user, 
+                               shopping_list_name = shopping_list_name, 
+                                share = shopping_list_user_share_to_list,
+                                share_with_user = shopping_lists_shared_with_user 
+                               )
     else:
         return redirect(url_for('login'))
 
@@ -129,6 +162,7 @@ def home_add():
             product = request.form.get('product')
             notes = request.form.get('notes')
             shopping_list_name = request.form.get('shopping_list_name')
+            user_id_form = request.form.get("user_id")
             if shopping_list_name:
                 session['shopping_list_name'] = shopping_list_name
             products_id = db.session.query(Product.id, Product.user_id).filter_by(name=product).all()
@@ -140,8 +174,12 @@ def home_add():
                     shopping_list_item.notes = notes
                     flash("Item quantity updated successfully!", "success")
                 else:
-                    shopping_list_item = ShoppingList(quantity = quantity, product_id= product_id,  shopping_list_name=shopping_list_name, user_id=user_id, notes=notes)
-                    db.session.add(shopping_list_item)
+                    if user_id == user_id_form:
+                        shopping_list_item = ShoppingList(quantity = quantity, product_id= product_id,  shopping_list_name=shopping_list_name, user_id=user_id, notes=notes)
+                        db.session.add(shopping_list_item)
+                    else: 
+                        shopping_list_item = ShoppingList(quantity = quantity, product_id= product_id,  shopping_list_name=shopping_list_name, user_id=user_id_form, notes=notes)
+                        db.session.add(shopping_list_item)
                     
                 try:
                     db.session.commit()
@@ -248,13 +286,23 @@ def home_delete_list():
             action = request.form.get('action')
             if action == "update":
                 if list_name:
-                    db.session.query(ShoppingList).filter(ShoppingList.shopping_list_name == list_name_old, User.id == user_id).update({"shopping_list_name": list_name})          
+                    db.session.query(ShoppingList).filter(ShoppingList.shopping_list_name == list_name_old, User.id == user_id).update({"shopping_list_name": list_name})
+                    db.session.query(ShoppingListUser).filter(ShoppingListUser.user_id == user_id, ShoppingListUser.shopping_list_name == list_name_old).update({"shopping_list_name": list_name})    
                     if 'shopping_list_name' not in session:
                             session['shopping_list_name'] = list_name
                     else:
                         session['shopping_list_name'] = list_name
             elif action == "delete":
+                is_connected = (
+                    db.session.query(Connections).join(ShoppingListUser, ShoppingListUser.id == Connections.shopping_list_id)
+                    .filter(ShoppingListUser.user_id == user_id, ShoppingListUser.shopping_list_name == list_name).scalar()
+                )
+                if is_connected:
+                    db.session.delete(is_connected)
                 db.session.query(ShoppingList).filter(ShoppingList.shopping_list_name == list_name, User.id == user_id).delete()
+                db.session.query(ShoppingListUser).filter(ShoppingListUser.user_id == user_id, ShoppingListUser.shopping_list_name == list_name).delete()
+
+                print(is_connected)
             try: 
                 db.session.commit() 
                 flash("Edit Succecful")
@@ -437,37 +485,40 @@ def send_connect_request():
             username_to_connect = request.form.get("username")
             shopping_list_to_share = request.form.get("shopping_lists")
             if username_to_connect and shopping_list_to_share:
-                connection = (
-                    db.session.query(Connections)
-                    .join(ShoppingListUser, ShoppingListUser.shopping_list_name == shopping_list_to_share)
-                    .join(User, User.username == username_to_connect)
-                    .filter(Connections.user_id == user_id or Connections.user_id_join == user_id).first()
-                )
-                if connection:
-                    flash("Connection already exist","warning")
-                else:
-                    shopping_list_user_id = (
-                        db.session.query(ShoppingListUser.id, User.id)
+                shopping_list_id = db.session.query(ShoppingListUser.id).filter(ShoppingListUser.shopping_list_name == shopping_list_to_share, ShoppingListUser.user_id == user_id)
+                if shopping_list_id:
+                    connection = (
+                        db.session.query(Connections)
+                        .join(ShoppingListUser, ShoppingListUser.shopping_list_name == shopping_list_to_share)
                         .join(User, User.username == username_to_connect)
-                        .filter(ShoppingListUser.shopping_list_name == shopping_list_to_share)
-                        .first()
-                    ) 
-                    print(shopping_list_user_id)
-                    new_connection = Connections(
-                        user_id = user_id,
-                        is_send = True,
-                        is_excepted = False,
-                        user_id_join = shopping_list_user_id[1],
-                        shopping_list_id = shopping_list_user_id[0]
+                        .filter(Connections.user_id == user_id, Connections.shopping_list_id == shopping_list_id).first()
                     )
-                    try:
-                        db.session.add(new_connection)
-                        db.session.commit()
-                        flash("Request sent","success")
-                    except psycopg2.IntegrityError as e:
-                            db.session.rollback() 
-                            print(f"Error inserting user: {e}")
-                            flash("An error occurred while saving the user." ,"category")
+                    print(connection)
+                    if connection:
+                        flash("Connection already exist","warning")
+                    else:
+                        shopping_list_user_id = (
+                            db.session.query(ShoppingListUser.id, User.id)
+                            .join(User, User.username == username_to_connect)
+                            .filter(ShoppingListUser.shopping_list_name == shopping_list_to_share)
+                            .first()
+                        ) 
+                        # print(shopping_list_user_id)
+                        new_connection = Connections(
+                            user_id = user_id,
+                            is_send = True,
+                            is_excepted = False,
+                            user_id_join = shopping_list_user_id[1],
+                            shopping_list_id = shopping_list_user_id[0]
+                        )
+                        try:
+                            db.session.add(new_connection)
+                            db.session.commit()
+                            flash("Request sent","success")
+                        except psycopg2.IntegrityError as e:
+                                db.session.rollback() 
+                                print(f"Error inserting user: {e}")
+                                flash("An error occurred while saving the user." ,"category")
             else:
                 flash("Choose valid username and shopping list","category")
         return redirect('profile')
@@ -494,6 +545,27 @@ def shopping_connect_decline():
                     print(f"Error inserting user: {e}")
                     flash("An error occurred while saving the user." ,"category")
             return redirect('profile')
+    else:
+        redirect(url_for('login')) 
+
+@app.route("/active_shopping", methods=['POST', 'GET'])
+def active_shopping():
+    if 'username' in session:
+        name = session['username']
+        user_id = session['user_id']
+        if request.method == 'POST':
+            shopping_list_name = request.form.get("shopping_list_name")
+            username = request.form.get("username")
+            if shopping_list_name and username:
+                products = (
+                    db.session.query(ShoppingList.quantity, ShoppingList.shopping_list_name, Product.name, Product.category)
+                    .join(Product, Product.id == ShoppingList.product_id)
+                    .join(User, ShoppingList.user_id == User.id)
+                    .filter(ShoppingList.shopping_list_name == shopping_list_name, User.username == username).all()
+                )
+                print(products)
+        return render_template('active.html')
+
     else:
         redirect(url_for('login')) 
 
