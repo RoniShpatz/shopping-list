@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% block title %}Home{% endblock %}
+{% block main %}
+
+{% with messages = get_flashed_messages(with_categories=True) %}
+  {% if messages %}
+    {% for category, message in messages %}
+      <p class="flash_message {{ category }}">{{ message }}</p>
+    {% endfor %}
+  {% endif %}
+{% endwith %}
+
+<h1>{{name | capitalize}} shopping info:</h1>
+<div>
+    <h2>Missing Products</h2>
+    <p>Click on the product to add to shopping list</p>
+    {% set displayed_dates = [] %}
+    {% for item in missing_info %}
+        {% if item.date not in displayed_dates %}
+            <h4>{{ item.date }}</h4>
+            {% set displayed_dates = displayed_dates.append(item.date) %}
+        {% endif %}
+        <p class="product_name">{{ item.product_name }}</p>
+        <div>
+            <form action="/add_missing_to shopping_list" method="POST" class="add_product_form">
+                <input name="date" value="{{item.date}}" class="date_to_hide">
+                <input name="product_name" value="{{item.product_name}}" class="name_to_hide">
+                <label for="shopping_list">Add to:</label>
+                <select name="shopping_lists">
+                    {% for name in shopping_lists_name%}
+                    <option value="{{name}}">{{name}}</option>
+                    {% endfor %}
+                </select>
+                <button type="submit" class="">Add</button>
+            </form>
+        </div>
+    {% endfor %}
+
+</div>
+
+
+
+
+
+
+
+
+
+<script src="../static/js/shopping_info.js"></script>
+{% endblock %}

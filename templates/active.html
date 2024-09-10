@@ -10,18 +10,82 @@
   {% endif %}
 {% endwith %}
 
+<h1>Active shopping "{{shopping_list_name}}"</h1>
+<div id="products">
+
+</div>
+<div id = "missing">
+    <h2>Missing</h2>
+</div>
+<div id = "bought">
+    <h2>Bought</h2>
+</div>
+
+
+<p id="end-shopping">End Shopping</p>
+</div>
 
 
 
-<p>hello</p>
+
+
+<div id="form_save_missing">
+    <form action="/show_shopping_info" method="post">
+        <p>Do you wish to see the missing list?</p>
+        <button type="submit" name="action" value="yes">Yes</button>
+        <button type="submit" name="action" value="no">No</button>
+    </form>
+</div>
 
 
 
 
+<script >
+    const productsList = {{ products | tojson }};
+    const productsDiv = document.getElementById("products")
+    let categories = [];
+
+    productsList.forEach(product => {
+    if (product.category !== 'no products yet' && !categories.includes(product.category)) {
+        categories.push(product.category);
+    }
+});
 
 
 
 
+categories.forEach(category => {
+    const divCategory = document.createElement("div")
+    divCategory.classList.add("category_div")
+    const h4 = document.createElement("h4");
+    h4.innerHTML = category;
+    h4.classList.add = "category" 
+    divCategory.appendChild(h4)
+    productsDiv.appendChild(divCategory);
 
 
+    productsList.forEach(product => {
+        if (product.category === category) {
+            const p = document.createElement("p");
+            p.classList.add("product_p")
+       
+            p.innerHTML = `<span class = "hidden-categorey">${product.category}: </span><span class= "quantity">${product.quantity}</span> <span>${product.name}</span> <span class="note">${product.notes}</span> <span class="check">✔</span> <span class="missing">✖</span>`;
+            const spanId = document.createElement("span")
+
+            spanId.innerText = `${product.product_id}`
+           
+
+            p.appendChild(spanId)
+            spanId.classList.add("id_hidden")
+            const categoryHidden = document.createElement("p")
+            
+            divCategory.appendChild(p)
+            productsDiv.appendChild(divCategory); 
+        }
+    });
+});
+
+
+</script>
+<script src="../static/js/active.js"></script>
 {% endblock %}

@@ -8,36 +8,36 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Roboto+Flex:opsz,wght@8..144,100..1000&display=swap" rel="stylesheet">
     <link rel="icon" href="../static/images/logo copy.png" type="image/icon type">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Raleway:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
     <title>Sign In</title>
 </head>
-<body>
-    <h2>Sign In</h2>
-                        <form class="form-log-in" action="/sign-in" method="POST">
-                            <div class="input-layout">
-                                <input type="text" id="username" name="username" placeholder="username" autocomplete="username"><br>
-                                <div class="password-btn">
-                                    <input type="password" id="password" name="password" placeholder="password" required class="password" autocomplete="new-password">
-                                    <img src="../static/images/eye.png" alt="eye-icon" id="show-password">
-                                </div>
-                                <input type="password" id="password-2" name="password-2" placeholder="re-enter password" required class="password" autocomplete="new-password"><br>
-                                {% if password2_error %}
-                                <p >Passwords do not match. Please try again.</p>
-                                {% endif %}
-                                {% if name %}
-                                <p>Username already exists</p>
-                                {% endif %}
-                            </div>
-                            <!-- <p> Choose color</p>
-                            <div class="color-thumbnails">
-                                <input type="radio" class="thumbnail" id = "green" name="color" value="#206A5D">
-                                <input type="radio" class="thumbnail" id = "light-green" name="color" value="#81B214">
-                                <input type="radio" class="thumbnail" id = "yellow" name="color" value="#FFCC29">
-                                <input type="radio" class="thumbnail" id = "orange" name="color" value="#F58634">
-                                <input type="radio" class="thumbnail" id = "blue" name="color" value="#34dff5">
-                            </div> -->
-                            <button action="submit" value="submit" id="login-submit">Sign In</button>
-                            
-                        </form>
-                        <a href="{{url_for('login')}}">Log In</a>
+<body class="body_login">
+    <div class="login_div">
+        <h2>Sign In</h2>
+        <form class="form-log-in" action="/sign-in" method="POST">
+            <div class="input-layout">
+         
+                <input type="text" id="username" name="username" placeholder="username" autocomplete="username"><br>
+                <div class="password-btn">
+                    <input type="password" id="password" name="password" placeholder="password" required class="password" autocomplete="new-password">
+                    <img src="../static/images/eye-closed.png" alt="eye-icon" id="show-password">
+                </div>
+                <input type="password" id="password-2" name="password-2" placeholder="re-enter password" required class="password" autocomplete="new-password"><br>
+                {% if password2_error %}
+                <p >Passwords do not match. Please try again.</p>
+                {% endif %}
+                {% if name %}
+                <p>Username already exists</p>
+                {% endif %}
+            </div>
+            <button action="submit" value="submit" id="login-submit">Sign In</button>
+            
+        </form>
+        <a href="{{url_for('login')}}">Log In</a>
+    </div>
+
+
 </body>
 </html>

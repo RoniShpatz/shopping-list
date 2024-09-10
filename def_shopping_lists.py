@@ -4,10 +4,10 @@ import psycopg2
 from psycopg2 import sql
 from collections import namedtuple
 from sqlalchemy.exc import SQLAlchemyError
-from sqlalchemy import select, asc
+from sqlalchemy import select, asc, func
 from models import User, db, ActiveShopping, Product, ShoppingList,Connections
 from flask_sqlalchemy import SQLAlchemy
-
+from datetime import datetime
 
 #sort the user's shoppings lists
 def orginize_data_shopping_ilsts(tauple):
@@ -122,3 +122,84 @@ def get_shared_shopping_list_data(list_shared):
         if info:
             data.append(info)
     return data
+
+#get products list to jinja tojason
+
+def orginize_product_list(tauple):
+    list_of_products = []
+    for quantity, shopping_list_name, notes,  product_name, category, id in tauple:
+        list_of_products .append( {
+            'quantity': quantity,
+            'name': product_name,
+            'notes': notes,
+            'category': category,
+            'product_id': id    
+        })
+    return list_of_products 
+
+# insert the missing to active shopping list
+
+def save_missing_list(missing_list, user_id):
+    for item in missing_list:
+        new_item = ActiveShopping(
+            product_id = item['product_id'],
+            situation = 'missing',
+            date = datetime.utcnow(),
+            user_id = user_id
+        )
+        db.session.add(new_item)
+        db.session.commit()
+    return 
+
+
+# orginazie to dict missing and bougth lists
+def organize_to_dict_shopping_info(info_list):
+    dict_info = []
+    for name, date in info_list:
+        dict_info.append({
+            'product_name': name,
+            'date': date
+        })
+    return dict_info
+
+
+#add missing item to chosen shopping list and removed from missing
+
+def add_item_to_shopping_list_remove(name, date, user_id, shopping_list_name):
+    products= db.session.query(Product.id, Product.user_id).filter(Product.name == name).all()
+    if products:
+        product_id = None
+        if len(products) > 0:
+            for product in products:
+                if product[1] == user_id:
+                    product_id = product[0]
+                    break
+        if product_id is None:
+            product_id = products[0][0]
+        shopping_list_to_add = (
+            db.session.query(ShoppingList.product_id)
+            .filter(ShoppingList.shopping_list_name == shopping_list_name, ShoppingList.user_id == user_id).all()
+        )
+        if shopping_list_to_add:
+            if product_id not in shopping_list_to_add:       
+                new_product = ShoppingList(
+                    quantity = 1,
+                    product_id = product_id,
+                    shopping_list_name = shopping_list_name,
+                    user_id = user_id,
+                    notes = None
+                )
+                db.session.add(new_product)
+                db.session.commit()
+        missing_item = (db.session.query(ActiveShopping).filter(
+                ActiveShopping.user_id == user_id,
+                func.date(ActiveShopping.date) == date,  
+                ActiveShopping.product_id == product_id
+                ).first()
+                    )
+        print(missing_item)
+        if missing_item:
+            db.session.delete(missing_item)
+            db.session.commit()
+
+    return 

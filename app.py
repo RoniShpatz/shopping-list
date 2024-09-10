@@ -5,7 +5,7 @@ from psycopg2 import sql
 from flask_bcrypt import Bcrypt 
 # making an env var 
 from dotenv import load_dotenv  # take environment variables from .env.
-from def_shopping_lists import orginize_data_shopping_ilsts, convert_products_list_to_tauple, convert_products_list_to_edit,get_product_id_by_user_id, connection_user_list,  convert_tuples_and_remove_doubles, get_shared_shopping_list_data
+from def_shopping_lists import orginize_data_shopping_ilsts, convert_products_list_to_tauple, convert_products_list_to_edit,get_product_id_by_user_id, connection_user_list,  convert_tuples_and_remove_doubles, get_shared_shopping_list_data, orginize_product_list, save_missing_list, organize_to_dict_shopping_info, add_item_to_shopping_list_remove
 from flask_sqlalchemy import SQLAlchemy
 from models import User, db, ActiveShopping, Product, ShoppingList, Connections, ShoppingListUser
 from sqlalchemy.exc import SQLAlchemyError
@@ -555,19 +555,95 @@ def active_shopping():
         user_id = session['user_id']
         if request.method == 'POST':
             shopping_list_name = request.form.get("shopping_list_name")
-            username = request.form.get("username")
-            if shopping_list_name and username:
+            user_id_list = request.form.get("user_id")
+            print(shopping_list_name,user_id_list)
+            if shopping_list_name and user_id_list:
                 products = (
-                    db.session.query(ShoppingList.quantity, ShoppingList.shopping_list_name, Product.name, Product.category)
+                    db.session.query(ShoppingList.quantity, ShoppingList.shopping_list_name, ShoppingList.notes, Product.name, Product.category, Product.id)
                     .join(Product, Product.id == ShoppingList.product_id)
                     .join(User, ShoppingList.user_id == User.id)
-                    .filter(ShoppingList.shopping_list_name == shopping_list_name, User.username == username).all()
+                    .filter(ShoppingList.shopping_list_name == shopping_list_name, User.id == int(user_id_list)).all()
                 )
-                print(products)
-        return render_template('active.html')
+                
+                products_list = orginize_product_list(products)
+                print(products_list)
+        return render_template('active.html', name = name, products = products_list, shopping_list_name = shopping_list_name)
 
     else:
         redirect(url_for('login')) 
+
+@app.route("/end_shopping", methods=['POST', 'GET'])
+def get_info_active_shopping():
+    if 'username' in session:
+        name = session['username']
+        user_id = session['user_id']
+        data = request.get_json()
+        missing_items = data.get('missingItems')
+       
+        save_missing_list(missing_items, user_id)
+        
+        return jsonify({'status': 'success', 'redirect_url': '/shopping-info'})
+    else:
+        redirect(url_for('login')) 
+
+@app.route("/shopping_info", methods=['POST', 'GET'])
+def shopping_info():
+    if 'username' in session:
+        name = session['username']
+        user_id = session['user_id']
+        missing_list = (
+                    db.session.query(Product.name, ActiveShopping.date)
+                    .join(Product, Product.id == ActiveShopping.product_id)
+                    .filter(ActiveShopping.user_id == user_id, ActiveShopping.situation == 'missing').all()
+                )
+        bought_list = (
+                    db.session.query(Product.name, ActiveShopping.date)
+                    .join(Product, Product.id == ActiveShopping.product_id)
+                    .filter(ActiveShopping.user_id == user_id, ActiveShopping.situation == 'bougth').all()
+                )
+        missing = organize_to_dict_shopping_info(missing_list)
+        bought = organize_to_dict_shopping_info(bought_list)
+        user_shopping_list_tauple = db.session.query(ShoppingListUser.shopping_list_name).filter(ShoppingListUser.user_id == user_id).all()
+        user_shopping_list = convert_tuples_and_remove_doubles(user_shopping_list_tauple)
+               
+        return render_template('shopping_info.html', missing_info = missing, bought_info = bought, name = name, shopping_lists_name= user_shopping_list)
+    else:
+        redirect(url_for('login')) 
+
+
+
+@app.route("/show_shopping_info", methods=['POST', 'GET'])
+def show_shopping_info():
+    if 'username' in session:
+        name = session['username']
+        user_id = session['user_id']
+        if request.method == 'POST':
+            action = request.form.get('action')
+            if action == 'yes':
+                return redirect(url_for('shopping_info'))
+            if action == 'no':
+                return redirect(url_for('home'))
+        return redirect(url_for('shopping_info'))
+    else:
+        redirect(url_for('login')) 
+
+@app.route("/add_missing_to shopping_list", methods=['POST', 'GET'])
+def add_and_remove_missing():
+    if 'username' in session:
+        name = session['username']
+        user_id = session['user_id']
+        if request.method == 'POST':
+            date = request.form.get("date")
+            product_name = request.form.get("product_name")
+            shopping_list_name = request.form.get("shopping_lists")
+            add_item_to_shopping_list_remove(date=date, user_id=user_id, name=product_name, shopping_list_name=shopping_list_name)
+            
+        return redirect(url_for('shopping_info'))
+    else:
+        redirect(url_for('login')) 
+
+
+
 
 # @app.route("/shopping_list_disconnect", methods=['POST', 'GET'])
 # def shopping_list_disconnect():

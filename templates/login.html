@@ -8,16 +8,22 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Roboto+Flex:opsz,wght@8..144,100..1000&display=swap" rel="stylesheet">
     <link rel="icon" href="../static/images/logo copy.png" type="image/icon type">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Raleway:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+   
     <title>Login</title>
 </head>
-<body>
-    <div>
+<body class="body_login">
+    <div class="login_div">
+        <h2>Login</h2>
         <form class="form-log-in" action="/login" method="POST">
             <div class="input-layout">
+                
                 <input type="text" id="username" name="username" placeholder="username" autocomplete="username"><br>
                 <div class="password-btn">
                     <input type="password" id="password" name="password" placeholder="password" required class="password" autocomplete="new-password">
-                    <img src="../static/images/eye.png" alt="eye-icon" id="show-password">
+                    <img src="../static/images/eye-closed.png" alt="eye-icon" id="show-password">
                 </div>
             <button action="submit" value="submit" id="login-submit">Log In</button>
         </form> <br>
@@ -29,8 +35,6 @@
         {% endif %}
         <a href="{{ url_for('signin') }}">Sign In</a>
     </div>
-    
-
-    
+   
 </body>
 </html>

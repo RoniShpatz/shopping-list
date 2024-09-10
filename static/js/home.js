@@ -19,7 +19,6 @@ window.addEventListener('load', (e) => {
                 indexON = index; 
             }
 
-      
         });
     }
 

@@ -24,8 +24,9 @@ class ActiveShopping(db.Model):
     product_id =  db.mapped_column(db.Integer, db.ForeignKey('products.id'), nullable=False)
     situation =   db.mapped_column(Enum('missing', 'bougth', name='situaton_enum'), nullable=False)
     date = db.mapped_column(db.DateTime, default=datetime.utcnow)
+    user_id =  db.mapped_column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     def __str__(self):
-        return f"{self.id}: {self.situation} on ({self.created_at:%Y-%m-%d}"
+        return f"{self.id}: {self.situation} on ({self.date:%Y-%m-%d}"
     
 
     
