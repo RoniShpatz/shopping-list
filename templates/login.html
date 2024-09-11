@@ -20,21 +20,45 @@
         <form class="form-log-in" action="/login" method="POST">
             <div class="input-layout">
                 
-                <input type="text" id="username" name="username" placeholder="username" autocomplete="username"><br>
+                <input type="text" id="username" name="username" placeholder="username" autocomplete="username" class="input"><br>
                 <div class="password-btn">
-                    <input type="password" id="password" name="password" placeholder="password" required class="password" autocomplete="new-password">
-                    <img src="../static/images/eye-closed.png" alt="eye-icon" id="show-password">
+                    <input type="password" id="password" name="password" placeholder="password" required class="password input" autocomplete="new-password" class="input">
+                    <img src="../static/images/eye.png" alt="eye-icon" id="show-password">
                 </div>
-            <button action="submit" value="submit" id="login-submit">Log In</button>
-        </form> <br>
-        {% if NoAuthorize %}
-        <p>Password wrong!</p>
-        {% endif %}
-        {% if NoUsername%}
-        <p>Username not found</p>
-        {% endif %}
-        <a href="{{ url_for('signin') }}">Sign In</a>
+                <div class="login-btn">
+                    <button action="submit" value="submit" id="login-submit">Log In</button>
+                </form > <br>
+                <div class="form-login-sighnin">
+                    {% if NoAuthorize %}
+                    <p>Password wrong!</p>
+                    {% endif %}
+                    {% if NoUsername%}
+                    <p>Username not found</p>
+                    {% endif %}
+                </div>
+     
+                <a href="{{ url_for('signin') }}">Sign In</a>
+                </div>
+ 
+
     </div>
    
 </body>
+<script>
+   const  eyeIcon = document.getElementById("show-password")
+   const inputPassword = document.getElementById("password")
+    let isPresd = false
+    eyeIcon.addEventListener("click", () => {
+        if (isPresd){
+            eyeIcon.src = "../static/images/eye.png"
+            inputPassword.type = 'password'
+            isPresd = false
+        } else {
+            eyeIcon.src = "../static/images/eye-closed.png"
+            inputPassword.type = 'text'
+            isPresd = true
+        }
+        
+    })    
+</script>
 </html>

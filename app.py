@@ -105,26 +105,45 @@ def home():
                 db.session.query(ShoppingListUser.shopping_list_name, User.username)
                 .join(Connections, ShoppingListUser.id == Connections.shopping_list_id)
                 .join(User, Connections.user_id_join == User.id)
-                .filter(Connections.user_id == user_id).all()
+                .filter(Connections.user_id == user_id, Connections.is_excepted == True).all()
             )
             shopping_lists_connected_to_user = (
                 db.session.query(ShoppingListUser.user_id, ShoppingListUser.shopping_list_name)
-                .join(Connections, ShoppingListUser.id == Connections.shopping_list_id).filter(Connections.user_id_join == user_id).all()
+                .join(Connections, ShoppingListUser.id == Connections.shopping_list_id).filter(Connections.user_id_join == user_id, Connections.is_excepted == True).all()
             )
-            shared_shopping_list_data = get_shared_shopping_list_data(shopping_lists_connected_to_user)
-            user_shopping_list_data = db.session.query(ShoppingList.user_id, ShoppingList.id, ShoppingList.quantity, ShoppingList.shopping_list_name, ShoppingList.notes,  Product.name, Product.category).join(Product, ShoppingList.product_id == Product.id).filter(ShoppingList.user_id == user_id).all()
-            all_shopping_list_data = shared_shopping_list_data[0] + user_shopping_list_data
-            # print(all_shopping_list_data)
-            # convert lists to lists of dict so jinja2 could make it json
             share_with_user = (
                  db.session.query(ShoppingListUser.shopping_list_name, User.username)
                 .join(Connections, ShoppingListUser.id == Connections.shopping_list_id)
                 .join(User, Connections.user_id == User.id)
                 .filter(Connections.user_id_join == user_id, Connections.is_excepted == True).all()
             )
-            shopping_list_user_share_to_list = [{'shopping_list_name': item[0], 'user_name': item[1]} for item in shopping_list_user_share]
-            shopping_lists_shared_with_user = [{'shopping_list_name': item[0], 'user_name': item[1]} for item in share_with_user]
-            # print(  shopping_lists_shared_with_user, shopping_list_user_share_to_list )
+            if shopping_list_user_share:
+                shopping_list_user_share_to_list = [{'shopping_list_name': item[0], 'user_name': item[1]} for item in shopping_list_user_share]
+            else : shopping_list_user_share_to_list = []
+            if share_with_user:
+                shopping_lists_shared_with_user = [{'shopping_list_name': item[0], 'user_name': item[1]} for item in share_with_user]
+            else: shopping_lists_shared_with_user  =[]
+            
+            shared_shopping_list_data = get_shared_shopping_list_data(shopping_lists_connected_to_user)
+            user_shopping_list_data = (
+                db.session.query(ShoppingList.user_id, ShoppingList.id, ShoppingList.quantity, 
+                                 ShoppingList.shopping_list_name, ShoppingList.notes,  Product.name, 
+                                 Product.category).join(Product, ShoppingList.product_id == Product.id)
+                                 .filter(ShoppingList.user_id == user_id).all()
+            )
+            
+            if shared_shopping_list_data and user_shopping_list_data:
+                all_shopping_list_data = shared_shopping_list_data + user_shopping_list_data
+            elif shared_shopping_list_data and not user_shopping_list_data:
+                all_shopping_list_data = shared_shopping_list_data
+            elif user_shopping_list_data and not shared_shopping_list_data:
+                all_shopping_list_data  = user_shopping_list_data
+            else: all_shopping_list_data = [] 
+           
+            # convert lists to lists of dict so jinja2 could make it json
+
+         
+            
 
 
             shopping_list = orginize_data_shopping_ilsts(all_shopping_list_data)

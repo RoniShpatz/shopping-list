@@ -10,23 +10,23 @@
 {% endif %}
     <ul class="flash-messages">
         {% for category, message in messages %}
-            <p class="{{ category }}">{{ message }}</p>
+            <p class="{{ category }} massage">{{ message }}</p>
         {% endfor %}
     </ul>
 {% endif %}
 {% endwith %}
 <h1>Hello {{ name|capitalize }}, what would you like to do?</h1>
-<div>
+<div class="home-container">
   
     <div class="shopping_list_name">
         {% for name in shopping_list %}
-            <p>{{ name }}</p>
+            <p><span class="list-name-bar">{{ name }}</span></p>
         {% endfor %}
         <div>
-            <form action="/home_edit_new_list" method="POST">
+            <form action="/home_edit_new_list" method="POST" class="form-add-list-name">
                 <input name="new_list" placeholder="Add new list">
-                <button type="submit" name="action" >✔</button>
-                <button type="reset" name="action" >✖</button>
+                <button type="submit" name="action" id="v">✔</button>
+                <button type="reset" name="action" id="x">✖</button>
             </form>
         </div>
     </div>
@@ -36,15 +36,19 @@
         {% for list_name, items in shopping_list.items() %}
            
             <div class="shopping_list_info {{ list_name }}">
-                <h2 class="list_name">{{ list_name }}</h2>
-                <form action="/home_delete_list" method="POST" class="shopping_list_name_edit_form">
-                    <input name="list_name_old" class="edit_list_name_hidden" value="{{list_name}}">
-                    <input name="list_name_edit" class="edit_list_name" value="{{list_name}}">
-                    <button type="submit" name="action" value="update">✔</button>
-                    <button type="submit" name="action" value="delete">Delete</button>
-                </form>
+                <div>
+                    <h2 class="list_name">{{ list_name }}</h2>
+                    <form action="/home_delete_list" method="POST" class="shopping_list_name_edit_form">
+                        <input name="list_name_old" class="edit_list_name_hidden" value="{{list_name}}">
+                        <input name="list_name_edit" class="edit_list_name" value="{{list_name}}">
+                        <button type="submit" name="action" value="update">✔</button>
+                        <button type="submit" name="action" value="delete">Delete</button>
+                    </form>
+                </div>
+
                 {% set categories = items | map(attribute='category') | unique %}
-                {% for category in categories %}
+                <div class="all-catagories-div">
+                    {% for category in categories %}
                     <div class="{{category}}">
                         <h4 class="category">{{ category }}</h4>
                         <ul>
@@ -81,7 +85,7 @@
                                         <input name="notes" placeholder="Add notes">
 
                                         <button type="submit" name="action" value="update">✔</button>
-                                        <button type="submit" name="action" value="delete">✖</button>
+                                        <button type="submit" name="action" value="delete" id="x">✖</button>
                                       </form>  
                                     </span>
                                     {% if item.notes %}
@@ -92,15 +96,17 @@
                         </ul>
                     </div>
                 {% endfor %}
+                </div>
+               
 
                 
-                <form action="/home_add" method="POST">
+                <form action="/home_add" method="POST" class="home-add-form">
                     <input name="shopping_list_name" class="shopping_list_name_hidden" value="{{ list_name }}">
                     <input name="user_id" value="{{ items[0].user_id}}" type="hidden">
-                    <input name="quantity" placeholder="000" type="number" maxlength="4">
+                    <input name="quantity" placeholder="000" type="number" maxlength="4" id="input-quntity">
                     <label for="products"></label>
-                    <input name="product" placeholder="Add product" list="products" class="product-input">
-                    <datalist id="products">
+                    <input name="product" placeholder="Add product" list="products" class="product-input" required>
+                    <datalist id="products" >
                         {% for product in products_list_all %}
                             <option value="{{ product.name }}">{{ product.name }}</option>
                         {% endfor %}
@@ -120,12 +126,12 @@
                         {% endfor %}
                     </datalist>
                     <input name="notes" placeholder="Add notes">
-                    <button type="submit">✔</button>
-                    <button type="reset">✖</button>
+                    <button type="submit" id="add-v-btn">✔</button>
+                    <button type="reset" id="add-x-btn">✖</button>
                 </form>
 
                 <!-- Link to start shopping -->
-                <div>
+                <div class="div-start-shopping"> 
                     <form action="/active_shopping" method="POST" >
                         <div class="start_shopping">
                             <input name="shopping_list_name" id="input_list_name" value="{{list_name}}">
@@ -175,7 +181,7 @@
         // Loop through share_json to compare
         share_json.forEach(obj => {
             if (p.innerText.trim() === obj.shopping_list_name) {
-                p.innerText = `${obj.shopping_list_name} shared with ${obj.user_name}`;
+                p.innerHTML = `<span class="list-name-bar">${obj.shopping_list_name}</span><span>  shared with ${obj.user_name}</span>`;
                 p.style.color = 'blue'
             }
         });
@@ -183,7 +189,7 @@
         // Loop through share_with_user_json to compare
         share_with_user_json.forEach(obj => {
             if (p.innerText.trim() === obj.shopping_list_name) {
-                p.innerText = `${obj.shopping_list_name} shared by ${obj.user_name}`
+                p.innerHTML = `<span class="list-name-bar">${obj.shopping_list_name}</span><span> shared by ${obj.user_name}</span>`
                 p.style.color = 'red'
             }
         });

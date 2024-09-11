@@ -35,9 +35,11 @@ window.addEventListener('load', (e) => {
         h2.addEventListener( "click", () => {
             if (etditShoppingListNameOn) {
                 shoppingListEditForm[index].style.display = "none" 
+                
                 etditShoppingListNameOn = false
             } else {
                 shoppingListEditForm[index].style.display = "inline"
+                
                 etditShoppingListNameOn = true
             }
         })
@@ -60,16 +62,27 @@ shoppingListName.forEach(input => {
 
 const shoppingListNameP = document.querySelectorAll(".shopping_list_name p");
 const shoppingListInfoDiv = document.querySelectorAll(".shopping_list_info");
+const shoppingListNamwBar = document.querySelectorAll(".list-name-bar")
 
 // solve value of list name
+// shoppingListNameH2
+
+
+
+
 shoppingListNameP.forEach((p, index) => {
     p.addEventListener("click", () => {
+        shoppingListNameP.forEach(p => {
+            p.classList.remove("class-list-shown") 
+        })
+        p.classList.add("class-list-shown")
         shoppingListInfoDiv.forEach(div => {
             div.style.display = "none";
         });
         shoppingListInfoDiv[index].style.display = "inline";
         indexON = index; 
     });
+    
 });
 
 itemId = document.querySelectorAll(".item_id_hidden")

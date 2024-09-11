@@ -15,15 +15,17 @@
 </head>
 <body class="bkg-body">
     <header>
-        <div>
-            <img src="../static/images/logo.png" alt="logo">
-            <ul>
-                <li><a href="{{ url_for('home') }}">Home</a></li>
-                <li><a href="{{url_for('edit_product_list')}}">Edit products lists</a></li>
-                <li><a href="{{url_for('profile')}}">Profile</a></li>
-                <li><a href="{{url_for('shopping_info')}}">Shopping info</a></li>
-                <li><a href="{{url_for('logout')}}">Log out</a></li>
-            </ul>
+        <div id="div-menu">
+            <img src="../static/images/logo-small.png" alt="logo" id="logo-btn" >
+            <div id="popup-menu-on-of">
+                <ul id="popup-menu">
+                    <li><a href="{{ url_for('home') }}">Home</a></li>
+                    <li><a href="{{url_for('edit_product_list')}}">Edit products lists</a></li>
+                    <li><a href="{{url_for('profile')}}">Profile</a></li>
+                    <li><a href="{{url_for('shopping_info')}}">Shopping info</a></li>
+                    <li><a href="{{url_for('logout')}}">Log out</a></li>
+                </ul>
+            </div>
         </div>
        
 
@@ -35,7 +37,7 @@
         {%endblock%}
     </main>
     <footer>
-        <ul>
+        <ul class="foter-list">
             <li><a href="{{ url_for('home') }}">Home</a></li>
             <li><a href="{{url_for('edit_product_list')}}">Edit products lists</a></li>
             <li><a href="{{url_for('profile')}}">Profile</a></li>
@@ -44,6 +46,24 @@
             
         </ul>
     </footer>
+<script>
+    const menuBtn = document.getElementById("logo-btn")
+    const menueOnOff = document.getElementById("popup-menu-on-of")
+    let isShow = false
+    menueOnOff.style.display = 'none'
+    menuBtn.addEventListener("click", () => {
+        if(isShow) {
+            menueOnOff.style.display = 'block'
+        
+            isShow = false
+        } else {
+            menueOnOff.style.display = 'none'
+            
+            isShow = true
+        }
+    })
 
+
+</script>
 </body>
 </html>

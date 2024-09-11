@@ -5,7 +5,7 @@ from psycopg2 import sql
 from collections import namedtuple
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy import select, asc, func
-from models import User, db, ActiveShopping, Product, ShoppingList,Connections
+from models import User, db, ActiveShopping, Product, ShoppingList,Connections, ShoppingListUser
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
 
@@ -107,10 +107,10 @@ def convert_tuples_and_remove_doubles(tuple_list):
             all.append(item[0])
     return all
 
-#get and get the gata of the shopping_list shared with uer
+#get and get the data of the shopping_list shared with user
 
 def get_shared_shopping_list_data(list_shared):
-    data = []
+    
     for user_id, shopping_list_name in list_shared:
         info = (
         db.session.query(ShoppingList.user_id, ShoppingList.id, ShoppingList.quantity, 
@@ -120,8 +120,8 @@ def get_shared_shopping_list_data(list_shared):
                 .filter(ShoppingList.user_id == user_id, ShoppingList.shopping_list_name == shopping_list_name)
                 ).all()
         if info:
-            data.append(info)
-    return data
+            return info
+    return 
 
 #get products list to jinja tojason
 
@@ -166,14 +166,15 @@ def organize_to_dict_shopping_info(info_list):
 #add missing item to chosen shopping list and removed from missing
 
 def add_item_to_shopping_list_remove(name, date, user_id, shopping_list_name):
-    products= db.session.query(Product.id, Product.user_id).filter(Product.name == name).all()
+    #is product in shopping list?
+    products= (
+        db.session.query(Product.id, Product.user_id)
+        .join(ShoppingListUser, ShoppingListUser.user_id == user_id)
+        .filter(Product.name == name, ShoppingListUser.shopping_list_name == shopping_list_name).first()
+    )
+    #work here !!!! 11.9
     if products:
-        product_id = None
-        if len(products) > 0:
-            for product in products:
-                if product[1] == user_id:
-                    product_id = product[0]
-                    break
+        
         if product_id is None:
             product_id = products[0][0]
         shopping_list_to_add = (
@@ -197,7 +198,7 @@ def add_item_to_shopping_list_remove(name, date, user_id, shopping_list_name):
                 ActiveShopping.product_id == product_id
                 ).first()
                     )
-        print(missing_item)
+        # print(missing_item)
         if missing_item:
             db.session.delete(missing_item)
             db.session.commit()

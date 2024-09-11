@@ -19,18 +19,21 @@
         <form class="form-log-in" action="/sign-in" method="POST">
             <div class="input-layout">
          
-                <input type="text" id="username" name="username" placeholder="username" autocomplete="username"><br>
+                <input type="text" id="username" name="username" placeholder="username" autocomplete="username" class="input"><br>
                 <div class="password-btn">
-                    <input type="password" id="password" name="password" placeholder="password" required class="password" autocomplete="new-password">
+                    <input type="password" id="password" name="password" placeholder="password" required class="password input" autocomplete="new-password" >
                     <img src="../static/images/eye-closed.png" alt="eye-icon" id="show-password">
                 </div>
-                <input type="password" id="password-2" name="password-2" placeholder="re-enter password" required class="password" autocomplete="new-password"><br>
-                {% if password2_error %}
-                <p >Passwords do not match. Please try again.</p>
-                {% endif %}
-                {% if name %}
-                <p>Username already exists</p>
-                {% endif %}
+                <input type="password" id="password-2" name="password-2" placeholder="re-enter password" required class="password input" autocomplete="new-password" ><br>
+                <div class="form-login-sighnin">
+                    {% if password2_error %}
+                    <p >Passwords do not match. Please try again.</p>
+                    {% endif %}
+                    {% if name %}
+                    <p>Username already exists</p>
+                    {% endif %}
+                </div>
+
             </div>
             <button action="submit" value="submit" id="login-submit">Sign In</button>
             
@@ -38,6 +41,25 @@
         <a href="{{url_for('login')}}">Log In</a>
     </div>
 
-
+    <script>
+        const  eyeIcon = document.getElementById("show-password")
+        const inputPassword = document.getElementById("password")
+        const inputReenterPassword = document.getElementById("password-2")
+         let isPresd = false
+         eyeIcon.addEventListener("click", () => {
+             if (isPresd){
+                 eyeIcon.src = "../static/images/eye.png"
+                 inputPassword.type = 'password'
+                 inputReenterPassword.type = 'password'
+                 isPresd = false
+             } else {
+                 eyeIcon.src = "../static/images/eye-closed.png"
+                 inputPassword.type = 'text'
+                 inputReenterPassword.type = 'text'
+                 isPresd = true
+             }
+             
+         })    
+     </script>
 </body>
 </html>

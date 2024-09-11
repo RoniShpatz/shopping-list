@@ -15,10 +15,19 @@ body {
     align-items: center;
     flex-direction: column;
     border-radius: 20%;
+    background-size: cover; 
     background-color: #ECFFE6;
     padding: 2%;
     box-shadow: 0 1px 2px 0 rgba(0,0,0,0.05);
+    border: 1px solid transparent;
+    box-shadow: inset 0 0 20px 3px rgba(57, 153, 24, 0.1);
+    padding:30px;
+    position: relative; 
     
+}
+.login_div h2 {
+    font-size: 2rem;
+    color: #399918;
 }
  .password-btn{
     display: flex;
@@ -35,4 +44,343 @@ body {
 }
 .form-log-in input{
     margin: 2%;
+}
+.input {
+    border: none;
+    font-size: 1.2rem;
+    padding: 2%;
+}
+#login-submit {
+    margin-top:5%;
+    margin-bottom: 5%;
+    padding: 2.5%;
+    border: transparent;
+    font-size: 1rem;
+    background-color: #FFAAAA;
+    color: white;
+    border-radius: 20%;
+}
+header{
+    position: sticky;
+    top: 10px;
+    z-index: 1000;
+    
+}
+#logo-btn {
+    cursor: pointer;
+    z-index: 1000;
+}
+
+#login-submit:hover{
+    background-color: #FF7777;
+    cursor: pointer;
+    box-shadow: inset 0 2px 4px 0 rgba(0,0,0,0.05);
+}
+.login-btn{
+    text-align: center;
+}
+.form-login-sighnin {
+    position: relative;
+    left: 25%;
+    top: 5%;
+    color: #FF7777;
+}
+
+#logo-btn:hover{
+    box-shadow: 0px -25px 20px -20px rgba(0, 0, 0, 0.45), 25px 0 20px -20px rgba(0, 0, 0, 0.45), 0px 25px 20px -20px rgba(0, 0, 0, 0.45), -25px 0 20px -20px rgba(0, 0, 0, 0.45);  
+}
+#popup-menu{
+    position: absolute;
+    background-color: #ECFFE6;
+    width: 100%;
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    box-shadow: 0px 1px 0px 0px rgba(27, 31, 36, 0.04);
+    margin-left: 1%;
+    border-radius: 10px;
+
+}
+
+#popup-menu li{
+    list-style: none;
+    font-size: 1.2rem;
+    margin-left: 5%;
+    margin-right: 5%;
+    position: relative;
+
+   
+    
+    
+}
+.div-menu{
+    position: relative;
+}
+#popup-menu-on-of{
+    position: absolute;
+    width: 80%;
+    z-index: 9999;
+    top: 5%;
+    left: 10%;
+    display: none;
+    
+}
+
+#popup-menu li a{
+  
+    text-decoration: none !important;
+    color: #FF7777;
+    cursor: pointer;
+    padding: 1%;
+    position: relative;
+    z-index: 100;
+    
+   
+    
+}
+#popup-menu li a:hover{
+   color: #399918;
+}
+
+footer {
+    margin-top: 5%;
+    background-color: #FFAAAA;
+}
+.foter-list{
+    list-style: none;
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    padding-bottom: 20%;
+    padding-top: 5%;
+}
+.foter-list a{
+    text-decoration: none;
+    color: #ECFFE6;
+    font-size: 1rem;
+    cursor: pointer;
+   
+}
+.foter-list a:hover{
+    color: #399918;
+}
+
+.home-container{
+    width: 90%;
+    margin-left: auto;
+    margin-right: auto;
+    display: flex;
+    justify-content: space-around;
+    align-items: flex-start;
+}
+ h1{
+    text-align: center;
+    color: #399918;
+    font-weight: 300;
+}
+.shopping_list_name p{
+   border: 1px solid #FFAAAA;
+   border-radius: 10px;
+   padding: 2%;
+   text-align: center; 
+
+}
+.form-add-list-name {
+    border: 1px solid #FFAAAA;
+    border-radius: 10px;
+    padding: 3%;
+}
+.form-add-list-name input{
+    border: none;
+    background-color: #ECFFE6;
+    border-radius: 10px;
+    padding: 1%; 
+    font-size: inherit;
+    width: 60%;
+}
+.form-add-list-name button{
+    background-color: transparent;
+    border: none;
+    font-size: 1.2rem;
+    color: #399918;
+    cursor: pointer;
+}
+.form-add-list-name #x{
+    color: #FF7777;
+}
+.form-add-list-name #x:hover{
+    color: #FFAAAA;
+}
+.form-add-list-name #v:hover{
+    color: #FFAAAA;
+}
+.class-list-shown{
+    box-shadow: 0px 4px 5px 0px #FF7777;
+}
+.list_container{
+    border: 1px solid #FF7777;
+    border-radius: 20px;
+    margin-left: 2%;
+    box-shadow: 0px 2px 5px 0px #FF7777;
+    position: relative;
+}
+.shopping_list_info div{
+    position: relative;
+}
+ h2{
+    text-align: center;
+    color: #FF7777;
+    font-weight: 400;
+    font-size: 1.8rem;
+}
+.shopping_list_name_edit_form {
+    position: absolute;
+    top: 105%;
+    left: 30%;
+    width: 100%;
+}
+.shopping_list_name_edit_form input {
+    border: none;
+    background-color: #ECFFE6;
+    padding: 1%;
+    border-radius: 15%;
+}
+.shopping_list_name_edit_form button {
+    border: none;
+    background-color: transparent;
+    color: #399918;
+    cursor: pointer;
+}
+.shopping_list_name_edit_form button:hover{
+    color: #FF7777;
+    
+}
+
+.all-catagories-div{
+ display: grid;
+ grid-template-columns: 1fr 1fr;
+ gap: 10px;
+ padding: 2%;
+
+}
+.all-catagories-div div {
+    background-color: #ECFFE6;
+    border-radius: 20px;
+}
+ h4{
+    text-align: center;
+    color: #399918;
+}
+.all-catagories-div ul li::marker{
+    color: #FFAAAA;
+}
+.all-catagories-div ul li{
+    position: relative;
+    margin-bottom: 2%;
+}
+.all-catagories-div ul li form{
+    position: absolute;
+    top: 120%;
+    left: -100%;
+    background-color: #ECFFE6;
+    border: 1px solid #FFAAAA;
+    padding: 5%;
+    border-radius: 15px;
+    z-index: 10;
+    
+    
+
+}
+.all-catagories-div ul li form input {
+   border: 1px solid #FF7777;
+   background-color: white;
+   border-radius: 15px;
+   padding: 1%;
+   margin-bottom: 1%;
+  
+}
+.all-catagories-div ul li form button{
+    background-color: transparent;
+    border: none;
+    color: #399918;
+    font-size: 1.5rem;
+    cursor: pointer;
+
+}
+.all-catagories-div ul li form #x {
+    color: #FF7777;
+}
+.all-catagories-div ul li form button:hover{
+    color: #FFAAAA;
+    text-shadow: #FFAAAA 1px 0 10px;
+}
+.all-catagories-div ul li form #x:hover{
+    color: #FFAAAA;
+    text-shadow: #FFAAAA 1px 0 10px;
+}
+
+.home-add-form {
+    margin-left: 1%;
+    margin-right: 1%;
+    padding: 2%;
+    border: 1px solid #FFAAAA;
+    border-radius: 20px;
+}
+.home-add-form input {
+    border-radius: 15px;
+    background-color: #ECFFE6;
+    border: 1px solid #FFAAAA;
+    padding: 1%;
+    width: calc(100% / 4.5); 
+
+}
+#input-quntity {
+    width: 8%;
+}
+.home-add-form button {
+    background-color: transparent;
+    border: none;
+    font-size: 1.3rem;
+    cursor: pointer;
+}
+#add-v-btn{
+    color: #399918;
+}
+#add-x-btn{
+    color: #FF7777;
+}
+#add-v-btn:hover{
+    color: #FFAAAA;
+    text-shadow: #FFAAAA 1px 0 10px;
+}
+#add-x-btn:hover{
+    color: #FFAAAA;
+    text-shadow: #FFAAAA 1px 0 10px;
+}
+.div-start-shopping{
+    text-align: center;
+    margin-top: 2%;
+    margin-bottom: 2%;
+}
+.div-start-shopping button{
+    background-color: #FF7777;
+    color: white;
+    padding: 1%;
+    border: none;
+    font-size: 1.2rem;
+    border-radius: 10px;
+}
+.div-start-shopping button:hover{
+  background-color: #FFAAAA;
+  box-shadow: 0px 8px 10px 0px #FF7777;
+}
+
+.massage{
+    position: absolute;
+    left: 42%;
+    top: 10%;
+    color: #FFAAAA;
+}
+.list_name {
+    z-index: 10;
 }
