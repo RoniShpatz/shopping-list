@@ -25,8 +25,7 @@ productName.forEach((product,index) => {
         } else {
             formAddProduct[index].style.display = 'none' 
             isOn = true
-        }
-       
+        } 
     })
 })
 

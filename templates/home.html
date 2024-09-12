@@ -38,11 +38,11 @@
             <div class="shopping_list_info {{ list_name }}">
                 <div>
                     <h2 class="list_name">{{ list_name }}</h2>
-                    <form action="/home_delete_list" method="POST" class="shopping_list_name_edit_form">
+                    <form action="/home_delete_list" method="POST" class="shopping_list_name_edit_form disable-form">
                         <input name="list_name_old" class="edit_list_name_hidden" value="{{list_name}}">
                         <input name="list_name_edit" class="edit_list_name" value="{{list_name}}">
                         <button type="submit" name="action" value="update">✔</button>
-                        <button type="submit" name="action" value="delete">Delete</button>
+                        <button type="submit" name="action" value="delete" >Delete</button>
                     </form>
                 </div>
 
@@ -56,9 +56,9 @@
                                 <li>
                                     <span class="list_item">{{ item.quantity }} <span class="item_name">{{ item.name }}</span>
                                     <!-- <p>{{item.user_id}}</p> -->
-                                      <form action="/home_edit_list" method="POST" class="edit_list_form">
-                                        <input name="shopping_list_name" class="shopping_list_name_hidden" value="{{ list_name }}">
-                                        <input name="item_id" class="item_id_hidden" value="{{ item.id }}">
+                                      <form action="/home_edit_item_in_list" method="POST" class="edit_list_form">
+                                        <input name="shopping_list_name"  value="{{ list_name }}" type="hidden">
+                                        <input name="item_id" value="{{ item.id }}" type="hidden" >
                                         <input name="quantity" placeholder="000" type="number" maxlength="4" value="{{ item.quantity }}">
 
                                         <label for="products"></label>
@@ -101,7 +101,7 @@
 
                 
                 <form action="/home_add" method="POST" class="home-add-form">
-                    <input name="shopping_list_name" class="shopping_list_name_hidden" value="{{ list_name }}">
+                    <input name="shopping_list_name"  value="{{ list_name }}" type="hidden">
                     <input name="user_id" value="{{ items[0].user_id}}" type="hidden">
                     <input name="quantity" placeholder="000" type="number" maxlength="4" id="input-quntity">
                     <label for="products"></label>
@@ -175,9 +175,10 @@
     const share_json = {{share | tojson}}
     const share_with_user_json = {{share_with_user | tojson}}
     const paraShoppingListName = document.querySelectorAll(".shopping_list_name p")
-
+    const deleteBtnList = document.querySelectorAll(".disable-form")
+    
     if (share_json || share_with_user_json) {
-    paraShoppingListName.forEach(p => {
+    paraShoppingListName.forEach((p, index) => {
         // Loop through share_json to compare
         share_json.forEach(obj => {
             if (p.innerText.trim() === obj.shopping_list_name) {
@@ -185,12 +186,29 @@
                 p.style.color = 'blue'
             }
         });
-
-        // Loop through share_with_user_json to compare
+    
+        // Loop through share_with_user_json to compare - and disable edit form to list shared with me
+        
+        
         share_with_user_json.forEach(obj => {
             if (p.innerText.trim() === obj.shopping_list_name) {
                 p.innerHTML = `<span class="list-name-bar">${obj.shopping_list_name}</span><span> shared by ${obj.user_name}</span>`
                 p.style.color = 'red'
+                console.log(deleteBtnList[index][0])
+                deleteBtnList[index][1].style.pointerEvents = 'none'; 
+                deleteBtnList[index][1].style.backgroundColor = 'grey'; 
+                deleteBtnList[index][1].style.opacity = '0.5'; 
+
+                deleteBtnList[index][2].style.pointerEvents = 'none'; 
+                deleteBtnList[index][2].style.backgroundColor = 'grey'; 
+                deleteBtnList[index][2].style.color = 'white'; 
+                deleteBtnList[index][2].style.opacity = '0.5'; 
+
+                deleteBtnList[index][3].style.pointerEvents = 'none'; 
+                deleteBtnList[index][3].style.backgroundColor = 'grey'; 
+                deleteBtnList[index][3].style.color = 'white'; 
+                deleteBtnList[index][3].style.opacity = '0.5'; 
+              
             }
         });
     });

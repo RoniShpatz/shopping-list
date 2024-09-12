@@ -14,3 +14,18 @@ h2Username.addEventListener("click", () => {
     }
 })
 
+const requestFormPara = document.querySelector(".profile-request-div p");
+const requestForm = document.querySelector(".profile-request-div");
+
+if (!requestFormPara) {
+    const newPara = document.createElement("p");
+    newPara.innerHTML = '<span>No request to show.</span>';
+    requestForm.appendChild(newPara);
+}
+
+const connectionFormPara = document.querySelector(".profile-connection-div p");
+const connectionList = document.querySelector(".profile-connection-div li");
+
+if (!connectionList && connectionFormPara) {
+    connectionFormPara.innerText = "No connection yet";
+}

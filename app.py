@@ -108,15 +108,18 @@ def home():
                 .filter(Connections.user_id == user_id, Connections.is_excepted == True).all()
             )
             shopping_lists_connected_to_user = (
-                db.session.query(ShoppingListUser.user_id, ShoppingListUser.shopping_list_name)
-                .join(Connections, ShoppingListUser.id == Connections.shopping_list_id).filter(Connections.user_id_join == user_id, Connections.is_excepted == True).all()
+                db.session.query(Connections.user_id, ShoppingListUser.shopping_list_name)
+                .join(Connections, ShoppingListUser.id == Connections.shopping_list_id)
+                .filter(Connections.user_id_join == user_id, Connections.is_excepted == True).all()
             )
+            # print(  shopping_lists_connected_to_user  )
             share_with_user = (
                  db.session.query(ShoppingListUser.shopping_list_name, User.username)
                 .join(Connections, ShoppingListUser.id == Connections.shopping_list_id)
                 .join(User, Connections.user_id == User.id)
                 .filter(Connections.user_id_join == user_id, Connections.is_excepted == True).all()
             )
+            # print(  share_with_user )
             if shopping_list_user_share:
                 shopping_list_user_share_to_list = [{'shopping_list_name': item[0], 'user_name': item[1]} for item in shopping_list_user_share]
             else : shopping_list_user_share_to_list = []
@@ -125,6 +128,7 @@ def home():
             else: shopping_lists_shared_with_user  =[]
             
             shared_shopping_list_data = get_shared_shopping_list_data(shopping_lists_connected_to_user)
+            
             user_shopping_list_data = (
                 db.session.query(ShoppingList.user_id, ShoppingList.id, ShoppingList.quantity, 
                                  ShoppingList.shopping_list_name, ShoppingList.notes,  Product.name, 
@@ -141,10 +145,6 @@ def home():
             else: all_shopping_list_data = [] 
            
             # convert lists to lists of dict so jinja2 could make it json
-
-         
-            
-
 
             shopping_list = orginize_data_shopping_ilsts(all_shopping_list_data)
             products_list = db.session.query(Product.id, Product.name, Product.category).order_by(asc(Product.name)).all() 
@@ -182,6 +182,7 @@ def home_add():
             notes = request.form.get('notes')
             shopping_list_name = request.form.get('shopping_list_name')
             user_id_form = request.form.get("user_id")
+            # print(quantity, product, notes, shopping_list_name, user_id_form)
             if shopping_list_name:
                 session['shopping_list_name'] = shopping_list_name
             products_id = db.session.query(Product.id, Product.user_id).filter_by(name=product).all()
@@ -212,8 +213,8 @@ def home_add():
     else:
         redirect(url_for('login'))
 
-@app.route("/home_edit_list", methods = ['POST','GET'])
-def home_edit_list():
+@app.route("/home_edit_item_in_list", methods = ['POST','GET'])
+def home_edit_item_in_list():
     if 'username' in session:
         name = session['username']
         user_id = session['user_id']
@@ -233,7 +234,7 @@ def home_edit_list():
                         item.quantity = int(quantity)
                         item.notes = notes
                         item.shopping_list_name = shopping_list_name
-                        item.user_id = user_id 
+                        
                         db.session.commit()
                         flash("Item updated successfully!", "success")
                     else:
@@ -356,14 +357,14 @@ def edit_product_list_edit():
             product_category = request.form.get("product_category")
             product_action = request.form.get("action")          
             item = db.session.query(Product).filter(Product.id == product_id, Product.category == product_category).first()
-            # print(item)
+            print(item)
             if product_action == 'delete':
                 db.session.delete(item)
             elif product_action == 'update':
                 if product_name and product_category:
                     item.category = product_category
                     item.name = product_name
-                    item.user_id = user_id
+                   
             try:
                 db.session.commit()
                 flash("Product updated successfully!", "success")
@@ -611,21 +612,16 @@ def shopping_info():
         name = session['username']
         user_id = session['user_id']
         missing_list = (
-                    db.session.query(Product.name, ActiveShopping.date)
+                    db.session.query(Product.id, Product.name, ActiveShopping.date, ActiveShopping.id)
                     .join(Product, Product.id == ActiveShopping.product_id)
                     .filter(ActiveShopping.user_id == user_id, ActiveShopping.situation == 'missing').all()
                 )
-        bought_list = (
-                    db.session.query(Product.name, ActiveShopping.date)
-                    .join(Product, Product.id == ActiveShopping.product_id)
-                    .filter(ActiveShopping.user_id == user_id, ActiveShopping.situation == 'bougth').all()
-                )
         missing = organize_to_dict_shopping_info(missing_list)
-        bought = organize_to_dict_shopping_info(bought_list)
+
         user_shopping_list_tauple = db.session.query(ShoppingListUser.shopping_list_name).filter(ShoppingListUser.user_id == user_id).all()
         user_shopping_list = convert_tuples_and_remove_doubles(user_shopping_list_tauple)
-               
-        return render_template('shopping_info.html', missing_info = missing, bought_info = bought, name = name, shopping_lists_name= user_shopping_list)
+        print(user_shopping_list) 
+        return render_template('shopping_info.html', missing_info = missing,  name = name, shopping_lists_name= user_shopping_list)
     else:
         redirect(url_for('login')) 
 
@@ -652,11 +648,16 @@ def add_and_remove_missing():
         name = session['username']
         user_id = session['user_id']
         if request.method == 'POST':
-            date = request.form.get("date")
+            active_id = request.form.get("active_id")
+            product_id = request.form.get("product_id")
             product_name = request.form.get("product_name")
             shopping_list_name = request.form.get("shopping_lists")
-            add_item_to_shopping_list_remove(date=date, user_id=user_id, name=product_name, shopping_list_name=shopping_list_name)
-            
+            # print(date, product_name, shopping_list_name )
+            result = add_item_to_shopping_list_remove(
+                 product_id=product_id, user_id=user_id,
+                   name=product_name, shopping_list_name=shopping_list_name,
+                     active_id=active_id)
+            flash( result ,"category")
         return redirect(url_for('shopping_info'))
     else:
         redirect(url_for('login')) 

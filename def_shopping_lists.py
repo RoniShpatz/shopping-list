@@ -155,8 +155,10 @@ def save_missing_list(missing_list, user_id):
 # orginazie to dict missing and bougth lists
 def organize_to_dict_shopping_info(info_list):
     dict_info = []
-    for name, date in info_list:
+    for product_id, name, date, active_id in info_list:
         dict_info.append({
+            'active_id': active_id,
+            'product_id': product_id,
             'product_name': name,
             'date': date
         })
@@ -165,42 +167,29 @@ def organize_to_dict_shopping_info(info_list):
 
 #add missing item to chosen shopping list and removed from missing
 
-def add_item_to_shopping_list_remove(name, date, user_id, shopping_list_name):
+def add_item_to_shopping_list_remove(active_id, name, product_id,  user_id, shopping_list_name):
     #is product in shopping list?
-    products= (
-        db.session.query(Product.id, Product.user_id)
-        .join(ShoppingListUser, ShoppingListUser.user_id == user_id)
-        .filter(Product.name == name, ShoppingListUser.shopping_list_name == shopping_list_name).first()
+    item = (
+        db.session.query(ShoppingList)
+        .join(Product, Product.id == ShoppingList.product_id)
+        .filter(ShoppingList.user_id == user_id, ShoppingList.shopping_list_name == shopping_list_name,
+             Product.id == product_id ).first()
     )
-    #work here !!!! 11.9
-    if products:
-        
-        if product_id is None:
-            product_id = products[0][0]
-        shopping_list_to_add = (
-            db.session.query(ShoppingList.product_id)
-            .filter(ShoppingList.shopping_list_name == shopping_list_name, ShoppingList.user_id == user_id).all()
+    if item:
+        return f"Product is already in {shopping_list_name}"
+    else:
+        newItem = (
+            ShoppingList(quantity = 1,
+                         product_id = product_id,
+                          shopping_list_name = shopping_list_name,
+                           user_id = user_id,
+                            notes = None  )
         )
-        if shopping_list_to_add:
-            if product_id not in shopping_list_to_add:       
-                new_product = ShoppingList(
-                    quantity = 1,
-                    product_id = product_id,
-                    shopping_list_name = shopping_list_name,
-                    user_id = user_id,
-                    notes = None
-                )
-                db.session.add(new_product)
-                db.session.commit()
-        missing_item = (db.session.query(ActiveShopping).filter(
-                ActiveShopping.user_id == user_id,
-                func.date(ActiveShopping.date) == date,  
-                ActiveShopping.product_id == product_id
-                ).first()
-                    )
-        # print(missing_item)
-        if missing_item:
-            db.session.delete(missing_item)
-            db.session.commit()
+        db.session.add(newItem)
+        item_to_remove = db.session.query(ActiveShopping).filter(ActiveShopping.id == active_id).first()
+        print(item_to_remove)
+        if item_to_remove:
+            db.session.delete(item_to_remove) 
+        db.session.commit()
 
-    return 
+    return f"Product added to {shopping_list_name}"

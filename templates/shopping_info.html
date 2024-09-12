@@ -11,31 +11,35 @@
 {% endwith %}
 
 <h1>{{name | capitalize}} shopping info:</h1>
-<div>
-    <h2>Missing Products</h2>
-    <p>Click on the product to add to shopping list</p>
-    {% set displayed_dates = [] %}
-    {% for item in missing_info %}
-        {% if item.date not in displayed_dates %}
-            <h4>{{ item.date }}</h4>
-            {% set displayed_dates = displayed_dates.append(item.date) %}
-        {% endif %}
-        <p class="product_name">{{ item.product_name }}</p>
-        <div>
-            <form action="/add_missing_to shopping_list" method="POST" class="add_product_form">
-                <input name="date" value="{{item.date}}" class="date_to_hide">
-                <input name="product_name" value="{{item.product_name}}" class="name_to_hide">
-                <label for="shopping_list">Add to:</label>
-                <select name="shopping_lists">
-                    {% for name in shopping_lists_name%}
-                    <option value="{{name}}">{{name}}</option>
-                    {% endfor %}
-                </select>
-                <button type="submit" class="">Add</button>
-            </form>
-        </div>
-    {% endfor %}
+<div class="shopping-info-all">
+        <h2>Missing Products</h2>
+        <p>Click on the product to add to shopping list</p>
+        {% set displayed_dates = [] %}
+        {% for item in missing_info %}
+        <div class="shopping-div-date">
+            {% if item.date not in displayed_dates %}
+                <h4>{{ item.date }}</h4>
+                {% set _ = displayed_dates.append(item.date) %}
+            {% endif %}
+            <p class="product_name">{{ item.product_name }}</p>
+            <div>
+                <form action="/add_missing_to shopping_list" method="POST" class="add_product_form">
+                    <input name="active_id" value="{{item.active_id}}" type="hidden">
+                    <input name="product_id" value="{{item.product_id}}" type="hidden">
+                    <input name="product_name" value="{{item.product_name}}" type="hidden">
+                    <label for="shopping_list">Add to:</label>
+                    <select name="shopping_lists">
+                        {% for name in shopping_lists_name%}
+                        <option value="{{name}}">{{name}}</option>
+                        {% endfor %}
+                    </select>
+                    <button type="submit" class="">Add</button>
+                </form>
+            </div>
+        
 
+        {% endfor %}
+    </div>
 </div>
 
 

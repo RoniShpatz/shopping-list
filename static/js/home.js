@@ -23,10 +23,7 @@ window.addEventListener('load', (e) => {
     }
 
   
-    shoppingListNameH2.forEach((h2, index) => {
-        shoppingListName[index].value = h2.innerText;
 
-    });
     let etditShoppingListNameOn = false
     shoppingListEditForm.forEach(form => {
         form.style.display = "none"
@@ -92,7 +89,7 @@ itemId.forEach(item => {
 })
 
 listItems = document.querySelectorAll(".item_name")
-formEditItem = document.querySelectorAll(".edit_list_form")
+const formEditItem = document.querySelectorAll(".edit_list_form")
 isClicked = false
 
 formEditItem.forEach(form => {
