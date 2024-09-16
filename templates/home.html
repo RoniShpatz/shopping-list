@@ -17,19 +17,27 @@
 {% endwith %}
 <h1>Hello {{ name|capitalize }}, what would you like to do?</h1>
 <div class="home-container">
-  
+  <div class="shopping_list_name_container">
     <div class="shopping_list_name">
         {% for name in shopping_list %}
-            <p><span class="list-name-bar">{{ name }}</span></p>
+            <div><p><span class="list-name-bar name-item">{{ name }}</span></p></div>
         {% endfor %}
         <div>
-            <form action="/home_edit_new_list" method="POST" class="form-add-list-name">
+            <form action="/home_edit_new_list" method="POST" class="form-add-list-name name-item">
                 <input name="new_list" placeholder="Add new list">
                 <button type="submit" name="action" id="v">✔</button>
                 <button type="reset" name="action" id="x">✖</button>
             </form>
         </div>
     </div>
+    <div class="btn-slider">
+        <div>
+            <p id="left-name">&lt;</p>
+            <p id="right-name">&gt;</p>
+        </div>
+    </div>
+  </div>
+
 
 
     <div class="list_container">
@@ -194,7 +202,7 @@
             if (p.innerText.trim() === obj.shopping_list_name) {
                 p.innerHTML = `<span class="list-name-bar">${obj.shopping_list_name}</span><span> shared by ${obj.user_name}</span>`
                 p.style.color = 'red'
-                console.log(deleteBtnList[index][0])
+                // console.log(deleteBtnList[index][0])
                 deleteBtnList[index][1].style.pointerEvents = 'none'; 
                 deleteBtnList[index][1].style.backgroundColor = 'grey'; 
                 deleteBtnList[index][1].style.opacity = '0.5'; 

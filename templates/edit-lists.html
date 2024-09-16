@@ -20,7 +20,7 @@
                 {% for category in categories_user %}
                 <div class="{{category}}">
                     <h4>{{ category }}</h4>
-                    <ul>
+                    <ul class="product-ul-container">
                         {% for product in product_list_user %}
                             {% if product.category == category %}
                                 <li class="edit_product_item">{{ product.name }}</li>

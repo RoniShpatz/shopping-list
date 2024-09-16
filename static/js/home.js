@@ -127,4 +127,28 @@ inputOldList.forEach(input => {
 
 flashMassage = document.querySelectorAll(".flash_massage")
 
+// slder to the name of list slider- only work on media screen max 700px
+const leftBtnName = document.getElementById("left-name")
+const rightName = document.getElementById("right-name")
+const nameSlidar = document.querySelector(".shopping_list_name")
+const slidItems = document.querySelectorAll(".shopping_list_name div")
 
+let currentIndex = 0;
+
+function updateSliderPosition() {
+    nameSlidar.style.transform = `translateX(-${currentIndex * 100}vw)`;
+}
+
+rightName.addEventListener("click", () => {
+    if (currentIndex < slidItems.length - 1) { 
+        currentIndex++;
+        updateSliderPosition();
+    }
+})
+
+leftBtnName.addEventListener("click", () => {
+    if (currentIndex > 0) { 
+        currentIndex--;
+        updateSliderPosition();
+    }
+});

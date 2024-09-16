@@ -18,7 +18,7 @@
         <div id="div-menu">
             <img src="../static/images/logo-small.png" alt="logo" id="logo-btn" >
             <div id="popup-menu-on-of">
-                <ul id="popup-menu">
+                <ul id="popup-menu" >
                     <li><a href="{{ url_for('home') }}">Home</a></li>
                     <li><a href="{{url_for('edit_product_list')}}">Edit products lists</a></li>
                     <li><a href="{{url_for('profile')}}">Profile</a></li>
@@ -53,12 +53,12 @@
    
     menuBtn.addEventListener("click", () => {
         if(isShow) {
-            menueOnOff.style.display = 'block'
-        
-            isShow = false
-        } else {
             menueOnOff.style.display = 'none'
             
+            isShow = false
+        } else {
+            menueOnOff.style.display = 'inline-block'
+           
             isShow = true
         }
     })
