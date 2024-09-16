@@ -1,3 +1,9 @@
+.bkg-body{
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
 body {
     font-family: "Raleway", sans-serif;
 }
@@ -210,6 +216,12 @@ footer {
     }
     .foter-list {
         flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        margin-left: auto;
+        margin-right: auto;
+        padding: 0;
+        padding-bottom: 5%;
         
     }
     .foter-list li {
@@ -454,16 +466,19 @@ footer {
         flex-direction: column;
         width: 100%;
         margin: 0%;
+        overflow: hidden;
     }
     .list_container{
         margin-left: 0;
+        
     }
     .shopping_list_name_container{
         width: fit-content;
-      
+        
         position: relative;
     }
     .shopping_list_name{
+        
         margin-left: 0;       
        display: flex; 
        flex-wrap: nowrap;
@@ -482,7 +497,7 @@ footer {
     }
     .btn-slider  div{
         display: flex;
-        width: 100vw;
+        width: 94vw;
         height: fit-content;
         justify-content: space-between;
         align-items: center;
@@ -490,8 +505,8 @@ footer {
 
     }
     .btn-slider  div p{
-        margin-left: 2%;
-        margin-right: 2%;
+        margin-left: 3%;
+        margin-right: 3%;
         margin-top: 0;
         margin-bottom: 0;
     }
