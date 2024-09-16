@@ -97,7 +97,7 @@ header{
         font-size: 2.2rem;
     } 
     .input-layout {
-        width: 130%;
+        width: 100%;
     }
     #login-submit {
         font-size: 1.6rem;
@@ -811,7 +811,7 @@ footer {
     border-radius: 20px;
     border: 1px solid #FF7777;
     width: 90%;
-    padding: 1%;å
+    padding: 1%;
     text-align: center;
     margin-left: auto;
     margin-right: auto;
