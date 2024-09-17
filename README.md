@@ -1,4 +1,6 @@
+
 website: https://shopping-list-0d1y.onrender.com
+github: https://github.com/RoniShpatz/shopping-list 
 
 Shopping List App Overview:
 The app allows users to manage their shopping lists effectively. Key features include sharing, collaborative editing, and a specialized "active shopping mode" for easier in-store shopping.
@@ -23,3 +25,6 @@ Product Management:
 
 The app includes a database of permanent products that are commonly purchased.
 Users can also add custom products to their lists if a product they need is not in the default database. 
+
+to see a user with database:
+user: roni password: 123
