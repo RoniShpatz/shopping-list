@@ -2,10 +2,14 @@
     display: flex;
     flex-direction: column;
     justify-content: space-between;
+    
 }
+
+
 
 body {
     font-family: "Raleway", sans-serif;
+    
 }
 
 .body_login{
@@ -467,16 +471,20 @@ footer {
 }
 @keyframes massageIn {
     0% {
-        transform: translateX(150px); 
+        transform: translateX(150px);
+        display: inline; 
     }
     10% {
-        transform: translateX(0); 
+        transform: translateX(0);
+        display: inline;  
     }
     90% {
-        transform: translateX(0); 
+        transform: translateX(0);
+        display: inline;  
     }
     100% {
-        transform: translateX(250px); 
+        transform: translateX(250px);
+        display: none;  
     }
 }
 .list_name {
